@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["public", "auth"]
+}
+
+// Application User model - maps to public.users table
+model User {
+  id        BigInt   @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  fullname  String?  @db.VarChar
+  authId    String?  @unique @map("auth_id") @db.Uuid
+
+  @@map("users")
+  @@schema("public")
+}
+
+// Fish model
+model Fish {
+  id        BigInt   @id @default(autoincrement())
+  name      String
+  species   String
+  tankId    BigInt?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("fishes")
+  @@schema("public")
+}
+
+// Tank model
+model Tank {
+  id        BigInt   @id @default(autoincrement())
+  name      String
+  width     Int
+  height    Int
+  length    Int
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  userId    BigInt?
+
+  @@map("tanks")
+  @@schema("public")
+}
