@@ -1,27 +1,29 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { ValidateTokenUseCase } from '@application/use-cases/auth/validate-token.use-case';
-import { UnauthorizedException } from '@domain/exceptions/auth.exception';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException, // ← NestJS built-in exception
+} from '@nestjs/common';
+import { AuthService } from '@application/services/auth.service';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly validateTokenUseCase: ValidateTokenUseCase) {}
+  constructor(private readonly authService: AuthService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      throw new UnauthorizedException('No token provided');
+      throw new UnauthorizedException('No token provided'); // ← Returns HTTP 401
     }
 
     try {
-      const user = await this.validateTokenUseCase.execute({
-        accessToken: token,
-      });
+      const user = await this.authService.validateToken(token);
       request.user = user; // Attach user to request
       return true;
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired token');
+      throw new UnauthorizedException('Invalid or expired token'); // ← Returns HTTP 401
     }
   }
 

@@ -1,27 +1,27 @@
 export abstract class BaseEntity {
   protected readonly _id: number;
-  protected readonly _createdAt: Date;
-  protected _updatedAt: Date;
+  protected readonly _created_at: Date;
+  protected _updated_at: Date;
 
-  constructor(id: number, createdAt?: Date, updatedAt?: Date) {
+  constructor(id: number, created_at?: Date, updated_at?: Date) {
     this._id = id;
-    this._createdAt = createdAt || new Date();
-    this._updatedAt = updatedAt || new Date();
+    this._created_at = created_at || new Date();
+    this._updated_at = updated_at || new Date();
   }
 
   get id(): number {
     return this._id;
   }
 
-  get createdAt(): Date {
-    return this._createdAt;
+  get created_at(): Date {
+    return this._created_at;
   }
 
-  get updatedAt(): Date {
-    return this._updatedAt;
+  get updated_at(): Date {
+    return this._updated_at;
   }
 
   protected touch(): void {
-    this._updatedAt = new Date();
+    this._updated_at = new Date();
   }
 }

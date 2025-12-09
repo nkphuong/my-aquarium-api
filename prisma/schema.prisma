@@ -9,10 +9,13 @@ datasource db {
 
 // Application User model - maps to public.users table
 model User {
-  id        BigInt   @id @default(autoincrement())
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  fullname  String?  @db.VarChar
-  authId    String?  @unique @map("auth_id") @db.Uuid
+  id         BigInt   @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  fullname   String?  @db.VarChar
+  auth_id    String?  @unique @db.Uuid
+
+  // Relationships
+  tanks Tank[] // One user has many tanks
 
   @@map("users")
   @@schema("public")
@@ -20,12 +23,15 @@ model User {
 
 // Fish model
 model Fish {
-  id        BigInt   @id @default(autoincrement())
-  name      String
-  species   String
-  tankId    BigInt?
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  id         BigInt   @id @default(autoincrement())
+  name       String
+  species    String
+  tank_id    BigInt?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  // Relationships
+  tank Tank? @relation(fields: [tank_id], references: [id], onDelete: SetNull)
 
   @@map("fishes")
   @@schema("public")
@@ -33,14 +39,18 @@ model Fish {
 
 // Tank model
 model Tank {
-  id        BigInt   @id @default(autoincrement())
-  name      String
-  width     Int
-  height    Int
-  length    Int
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
-  userId    BigInt?
+  id         BigInt   @id @default(autoincrement())
+  name       String
+  width      Int
+  height     Int
+  length     Int
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+  user_id    BigInt?
+
+  // Relationships
+  user   User?  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  fishes Fish[] // One tank has many fishes
 
   @@map("tanks")
   @@schema("public")

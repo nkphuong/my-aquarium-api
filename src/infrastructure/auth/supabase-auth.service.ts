@@ -1,11 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { SupabaseService } from '@supabase/supabase.service';
 import { AuthResult, SupabaseUser } from './auth.types';
-import {
-  AuthenticationException,
-  UnauthorizedException,
-  TokenExpiredException,
-} from '@domain/exceptions/auth.exception';
 
 @Injectable()
 export class SupabaseAuthService {
@@ -17,9 +16,7 @@ export class SupabaseAuthService {
       .auth.signUp({ email, password });
 
     if (error || !data.user || !data.session) {
-      throw new AuthenticationException(
-        error?.message || 'Registration failed',
-      );
+      throw new BadRequestException(error?.message || 'Registration failed');
     }
 
     return {
@@ -42,7 +39,7 @@ export class SupabaseAuthService {
       .auth.signInWithPassword({ email, password });
 
     if (error || !data.user || !data.session) {
-      throw new AuthenticationException(error?.message || 'Login failed');
+      throw new UnauthorizedException(error?.message || 'Invalid credentials');
     }
 
     return {
@@ -65,10 +62,11 @@ export class SupabaseAuthService {
       .auth.getUser(token);
 
     if (error) {
-      if (error.message.includes('expired')) {
-        throw new TokenExpiredException();
-      }
-      throw new UnauthorizedException(error.message);
+      throw new UnauthorizedException(
+        error.message.includes('expired')
+          ? 'Token has expired'
+          : error.message,
+      );
     }
 
     if (!data.user) {

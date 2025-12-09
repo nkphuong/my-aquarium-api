@@ -7,7 +7,7 @@ export class FishRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: number): Promise<Fish | null> {
-    const fish = await this.prisma.fish.findUnique({ where: { id } });
+    const fish = await this.prisma.fish.findUnique({ where: { id: BigInt(id) } });
     return fish ? this.toDomain(fish) : null;
   }
 
@@ -25,7 +25,6 @@ export class FishRepository {
   async save(entity: Fish): Promise<Fish> {
     const fish = await this.prisma.fish.create({
       data: {
-        id: entity.id,
         name: entity.name,
         species: entity.species,
       },
@@ -35,7 +34,7 @@ export class FishRepository {
 
   async update(id: number, entity: Partial<Fish>): Promise<Fish> {
     const fish = await this.prisma.fish.update({
-      where: { id },
+      where: { id: BigInt(id) },
       data: {
         name: entity.name,
         species: entity.species,
@@ -45,16 +44,17 @@ export class FishRepository {
   }
 
   async delete(id: number): Promise<void> {
-    await this.prisma.fish.delete({ where: { id } });
+    await this.prisma.fish.delete({ where: { id: BigInt(id) } });
   }
 
   private toDomain(prismaFish: any): Fish {
     return new Fish(
-      prismaFish.id,
+      Number(prismaFish.id),
       prismaFish.name,
       prismaFish.species,
-      prismaFish.createdAt,
-      prismaFish.updatedAt,
+      prismaFish.tank_id ? Number(prismaFish.tank_id) : undefined,
+      prismaFish.created_at,
+      prismaFish.updated_at,
     );
   }
 }

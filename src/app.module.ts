@@ -6,6 +6,7 @@ import { DatabaseModule } from '@infrastructure/database/database.module';
 import { SupabaseModule } from '@supabase/supabase.module';
 import { FishModule } from '@modules/fish/fish.module';
 import { AuthModule } from '@modules/auth/auth.module';
+import { TankModule } from '@modules/tank/tank.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuthModule } from '@modules/auth/auth.module';
     SupabaseModule,
     FishModule,
     AuthModule,
+    TankModule,
   ],
   controllers: [AppController],
   providers: [AppService],

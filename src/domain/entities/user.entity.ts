@@ -1,23 +1,23 @@
 import { BaseEntity } from './base.entity';
 
 export class User extends BaseEntity {
-  private _authId: string;
+  private _auth_id: string;
   private _fullname?: string;
 
   constructor(
     id: number,
-    authId: string,
+    auth_id: string,
     fullname?: string,
     createdAt?: Date,
     updatedAt?: Date,
   ) {
     super(id, createdAt, updatedAt);
-    this._authId = authId;
+    this._auth_id = auth_id;
     this._fullname = fullname;
   }
 
-  get authId(): string {
-    return this._authId;
+  get auth_id(): string {
+    return this._auth_id;
   }
 
 

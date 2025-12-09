@@ -12,9 +12,9 @@ export class UserRepository {
   }
 
 
-  async findByAuthId(authId: string): Promise<User | null> {
+  async findByAuthId(auth_id: string): Promise<User | null> {
     const user = await this.prisma.user.findUnique({
-      where: { authId },
+      where: { auth_id },
     });
     return user ? this.toDomain(user) : null;
   }
@@ -27,7 +27,7 @@ export class UserRepository {
   async save(entity: User): Promise<User> {
     const user = await this.prisma.user.create({
       data: {
-        authId: entity.authId,
+        auth_id: entity.auth_id,
         fullname: entity.fullname,
       },
     });
@@ -51,10 +51,10 @@ export class UserRepository {
   private toDomain(prismaUser: any): User {
     return new User(
       Number(prismaUser.id),
-      prismaUser.authId,
+      prismaUser.auth_id,
       prismaUser.fullname,
-      prismaUser.createdAt,
-      prismaUser.createdAt, // using createdAt for both since User model uses same field
+      prismaUser.created_at,
+      prismaUser.created_at,
     );
   }
 }
