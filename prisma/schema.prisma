@@ -39,19 +39,85 @@ model Fish {
 
 // Tank model
 model Tank {
-  id         BigInt   @id @default(autoincrement())
-  name       String
-  width      Int
-  height     Int
-  length     Int
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @updatedAt @db.Timestamptz(6)
-  user_id    BigInt?
+  id           BigInt    @id @default(autoincrement())
+  name         String
+  width        Int
+  height       Int
+  length       Int
+  water_volume Int?
+  avatar       String?
+  type         String?
+  style        String?
+  description  String?
+  setup_at     DateTime? @db.Timestamptz(6)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @updatedAt @db.Timestamptz(6)
+  user_id      BigInt?
+  status       String?
 
   // Relationships
   user   User?  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   fishes Fish[] // One tank has many fishes
 
   @@map("tanks")
+  @@schema("public")
+}
+
+model FishSpecies {
+  id        Int      @id @default(autoincrement())
+  create_at DateTime @default(now())
+  update_at DateTime @updatedAt
+
+  // --- 1. ĐỊNH DANH (IDENTITY) ---
+  name_en         String   @unique // VD: "Ranchu Goldfish"
+  name_vn         String // VD: "Cá vàng Ranchu"
+  scientific_name String? // VD: "Carassius auratus"
+  aliases         String[] // Các tên gọi khác tại VN: ["Lan thọ", "Cá vàng nón"]
+  image_url       String?
+
+  // --- 2. THÔNG SỐ NƯỚC (WATER PARAMETERS) ---
+  // Dùng để filter xem các loài có nuôi chung được không
+  temp_min Float // Độ C (VD: 18)
+  temp_max Float // Độ C (VD: 28)
+  ph_min   Float // (VD: 6.5)
+  ph_max   Float // (VD: 7.5)
+  gh_min   Int? // Độ cứng (General Hardness)
+  gh_max   Int?
+
+  // --- 3. YÊU CẦU HỒ NUÔI (TANK REQUIREMENTS) ---
+  // Dùng để tính toán size hồ và thiết bị
+  min_tank_size Int // Số lít tối thiểu cho 1 con (VD: 40L)
+  size_max      Float // Kích thước tối đa khi trưởng thành (VD: 15cm)
+
+  // Logic Bioload: Để tính công suất lọc
+  // 1: Rất thấp (Tép), 5: Trung bình, 10: Rất cao (Cá vàng, Oscar)
+  bioload_level Int @default(5)
+
+  // Logic Dòng chảy: Để chọn lọc/máy bơm
+  // "slow" (Betta), "moderate", "fast" (Cá bình tích)
+  flow_preference String @default("moderate")
+
+  // --- 4. TẬP TÍNH & TƯƠNG THÍCH (BEHAVIOR & COMPATIBILITY) ---
+  // Dùng để AI check xem có cắn nhau hoặc ăn cây không
+  care_level  String // "Easy", "Medium", "Expert"
+  temperament String // "Peaceful", "Semi-Aggressive", "Aggressive"
+  diet_type   String // "Herbivore", "Carnivore", "Omnivore"
+
+  // Các cờ (Flags) quan trọng cho Logic Code
+  is_schooling     Boolean @default(false) // Có bơi theo đàn không?
+  min_school_size  Int?    @default(1) // Nếu có, cần tối thiểu mấy con? (VD: Neon cần 6)
+  plant_safe       Boolean @default(true) // Có ăn cây không? (False = Ăn cây)
+  substrate_digger Boolean @default(false) // Có đào nền không? (True = Cẩn thận Aqua Soil)
+  jumper           Boolean @default(false) // Có hay nhảy không? (True = Cần nắp đậy)
+
+  // --- 5. AI & SEARCH (RAG) ---
+  description String @db.Text // Mô tả chi tiết cho AI đọc
+
+  // Vector dùng cho Supabase pgvector (Cần bật extension vector)
+  // Lưu ý: Prisma chưa support native type 'vector' hoàn hảo, 
+  // bạn cần dùng Unsupported("vector") hoặc quản lý raw SQL.
+  embedding Unsupported("vector(1536)")?
+
+  @@map("fish_species")
   @@schema("public")
 }

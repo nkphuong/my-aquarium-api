@@ -7,6 +7,7 @@ import { SupabaseModule } from '@supabase/supabase.module';
 import { FishModule } from '@modules/fish/fish.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { TankModule } from '@modules/tank/tank.module';
+import { FishSpeciesModule } from '@modules/fish-species/fish-species.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TankModule } from '@modules/tank/tank.module';
     FishModule,
     AuthModule,
     TankModule,
+    FishSpeciesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

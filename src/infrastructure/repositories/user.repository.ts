@@ -4,7 +4,7 @@ import { PrismaService } from '@infrastructure/database/prisma.service';
 
 @Injectable()
 export class UserRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findById(id: number): Promise<User | null> {
     const user = await this.prisma.user.findUnique({ where: { id: BigInt(id) } });
