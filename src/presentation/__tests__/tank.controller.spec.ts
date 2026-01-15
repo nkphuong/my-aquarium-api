@@ -92,8 +92,8 @@ describe('TankController', () => {
 
     describe('findAll', () => {
         it('should return paginated all tanks', async () => {
-            const result = await controller.findAll(mockUser as any, 1, 10);
-            expect(mockTankService.findAll).toHaveBeenCalledWith(mockUser.id, 1, 10);
+            const result = await controller.findAll(1, 10);
+            expect(mockTankService.findAll).toHaveBeenCalledWith(1, 10);
             expect(result.success).toBe(true);
             expect(result.data?.items).toHaveLength(1);
             expect(result.data?.meta).toEqual(mockMeta);

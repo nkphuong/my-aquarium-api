@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { Tank } from '@domain/entities/tank.entity';
 import { PaginationMeta } from '@application/dtos/pagination.dto';
+import { TankDimensions, TankType } from '@domain/enums/tank.enum';
+import { Prisma } from '@prisma/client';
 
-export interface PaginatedTanks {
-  data: Tank[];
+export interface PaginatedTanks<T> {
+  data: T[];
   meta: PaginationMeta;
 }
 
@@ -13,70 +15,72 @@ export class TankRepository {
   constructor(private readonly prisma: PrismaService) { }
 
   async findById(id: number): Promise<Tank | null> {
-    const tank = await this.prisma.tank.findUnique({ where: { id: BigInt(id) } });
+    const tank = await this.prisma.tank.findUnique({
+      where: { id: BigInt(id) },
+    });
     return tank ? this.toDomain(tank) : null;
   }
 
-  async findAll(): Promise<Tank[]> {
-    const tanks = await this.prisma.tank.findMany();
-    return tanks.map(this.toDomain);
+  async findAll(
+    page: number = 1,
+    perPage: number = 10,
+    includeArchived: boolean = false
+  ): Promise<PaginatedTanks<Tank>> {
+    const where: Prisma.TankWhereInput = includeArchived
+      ? {}
+      : { is_archived: false };
+
+    const [tanks, meta] = await this.prisma.extended.tank.paginate().withPages({
+      limit: perPage,
+      page,
+      includePageCount: true,
+      where, // Apply filter
+    });
+
+    return {
+      data: tanks.map(this.toDomain),
+      meta: {
+        total: meta.totalCount,
+        lastPage: meta.pageCount,
+        currentPage: meta.currentPage,
+        perPage: perPage,
+        prev: meta.previousPage,
+        next: meta.nextPage,
+      },
+    };
   }
 
-  async findByUserId(user_id: number, page: number = 1, perPage: number = 10): Promise<Tank[] | PaginatedTanks> {
-    // If pagination parameters are provided, return paginated result
-    if (page !== undefined && perPage !== undefined) {
-      const skip = (page - 1) * perPage;
+  async findByUserId(user_id: number, includeArchived: boolean = false): Promise<Tank[]> {
+    const where: Prisma.TankWhereInput = {
+      user_id: BigInt(user_id),
+      ...(includeArchived ? {} : { is_archived: false }),
+    };
 
-      const [tanks, total] = await Promise.all([
-        this.prisma.tank.findMany({
-          where: { user_id: BigInt(user_id) },
-          skip,
-          take: perPage,
-        }),
-        this.prisma.tank.count({
-          where: { user_id: BigInt(user_id) },
-        }),
-      ]);
-
-      const lastPage = Math.ceil(total / perPage);
-
-      return {
-        data: tanks.map(this.toDomain),
-        meta: {
-          total,
-          lastPage,
-          currentPage: page,
-          perPage,
-          prev: page > 1 ? page - 1 : null,
-          next: page < lastPage ? page + 1 : null,
-        },
-      };
-    }
-
-    // Return simple array if no pagination
     const tanks = await this.prisma.tank.findMany({
-      where: { user_id: BigInt(user_id) },
+      where,
     });
 
     return tanks.map(this.toDomain);
   }
 
   async save(entity: Tank): Promise<Tank> {
+    const data: Prisma.TankCreateInput = {
+      name: entity.name,
+      dimensions: entity.dimensions as unknown as Prisma.InputJsonValue, // Cast interface to Json
+      tank_type: entity.tank_type,
+      style: entity.style,
+      description: entity.description,
+      substrate: entity.substrate,
+      filter_type: entity.filter_type,
+      cover_image_url: entity.cover_image_url,
+      setup_date: entity.setup_date,
+      volume_liters: entity.volume_liters,
+      is_archived: entity.is_archived,
+      user: entity.user_id ? { connect: { id: BigInt(entity.user_id) } } : undefined,
+    };
+
     const tank = await this.prisma.tank.create({
-      data: {
-        name: entity.name,
-        width: entity.width,
-        height: entity.height,
-        length: entity.length,
-        ...(entity.type !== undefined && { type: entity.type }),
-        ...(entity.style !== undefined && { style: entity.style }),
-        ...(entity.description !== undefined && { description: entity.description }),
-        ...(entity.status !== undefined && { status: entity.status }),
-        ...(entity.setup_at !== undefined && { setup_at: entity.setup_at }),
-        ...(entity.water_volume !== undefined && { water_volume: entity.water_volume }),
-        ...(entity.avatar !== undefined && { avatar: entity.avatar }),
-        ...(entity.user_id !== undefined && { user_id: BigInt(entity.user_id) }),
-      },
+      data,
     });
     return this.toDomain(tank);
   }
@@ -85,18 +89,18 @@ export class TankRepository {
     const tank = await this.prisma.tank.update({
       where: { id: BigInt(id) },
       data: {
-        ...(entity.name !== undefined && { name: entity.name }),
-        ...(entity.width !== undefined && { width: entity.width }),
-        ...(entity.height !== undefined && { height: entity.height }),
-        ...(entity.length !== undefined && { length: entity.length }),
-        ...(entity.type !== undefined && { type: entity.type }),
-        ...(entity.style !== undefined && { style: entity.style }),
-        ...(entity.description !== undefined && { description: entity.description }),
-        ...(entity.status !== undefined && { status: entity.status }),
-        ...(entity.setup_at !== undefined && { setup_at: entity.setup_at }),
-        ...(entity.water_volume !== undefined && { water_volume: entity.water_volume }),
-        ...(entity.avatar !== undefined && { avatar: entity.avatar }),
-        ...(entity.user_id !== undefined && { user_id: BigInt(entity.user_id) }),
+        name: entity.name,
+        dimensions: entity.dimensions as unknown as Prisma.InputJsonValue,
+        tank_type: entity.tank_type,
+        style: entity.style,
+        description: entity.description,
+        substrate: entity.substrate,
+        filter_type: entity.filter_type,
+        cover_image_url: entity.cover_image_url,
+        setup_date: entity.setup_date,
+        volume_liters: entity.volume_liters,
+        is_archived: entity.is_archived,
+        user_id: entity.user_id ? BigInt(entity.user_id) : undefined,
       },
     });
     return this.toDomain(tank);
@@ -107,19 +111,27 @@ export class TankRepository {
   }
 
   private toDomain(prismaTank: any): Tank {
+    // Check if dimensions is a string (Json sometimes comes as string from DB or raw query) or object
+    let dimensions: TankDimensions | undefined = undefined;
+    if (prismaTank.dimensions) {
+      dimensions = typeof prismaTank.dimensions === 'string'
+        ? JSON.parse(prismaTank.dimensions)
+        : prismaTank.dimensions as TankDimensions;
+    }
+
     return new Tank(
       Number(prismaTank.id),
       prismaTank.name,
-      prismaTank.width,
-      prismaTank.height,
-      prismaTank.length,
-      prismaTank.type,
+      dimensions,
+      prismaTank.tank_type,
       prismaTank.style,
       prismaTank.description,
-      prismaTank.status,
-      prismaTank.setup_at,
-      prismaTank.water_volume,
-      prismaTank.avatar,
+      prismaTank.setup_date,
+      prismaTank.volume_liters ? Number(prismaTank.volume_liters) : undefined,
+      prismaTank.cover_image_url,
+      prismaTank.substrate,
+      prismaTank.filter_type,
+      prismaTank.is_archived,
       prismaTank.user_id ? Number(prismaTank.user_id) : undefined,
       prismaTank.created_at,
       prismaTank.updated_at,

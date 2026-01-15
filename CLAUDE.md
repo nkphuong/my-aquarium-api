@@ -435,3 +435,123 @@ export class AppModule {}
 - Entities should protect their invariants
 - Use methods to modify state, not direct property access
 - Keep entities independent of infrastructure concerns
+
+## Coding Conventions
+
+### Naming Standards
+
+| Type | Pattern | Example |
+|------|---------|---------|
+| Entity | `<Name>` | `Tank`, `Fish`, `User` |
+| DTO | `<Name>Dto`, `Create<Name>Dto`, `Update<Name>Dto` | `TankDto`, `CreateTankDto` |
+| Repository | `<Name>Repository` | `TankRepository` |
+| Service | `<Name>Service` | `TankService` |
+| Controller | `<Name>Controller` | `TankController` |
+| Module | `<Name>Module` | `TankModule` |
+
+- Database fields: `snake_case`
+- TypeScript properties: `camelCase` (except when mapping directly from DB)
+- Files: `<name>.<type>.ts` (e.g., `tank.entity.ts`, `tank.service.ts`)
+
+### Entity Design
+
+- Rich domain entities with **private fields** and **public getters**
+- Use `update<Property>()` methods instead of direct setters
+- Entities must extend `BaseEntity` with `id`, `created_at`, `updated_at`
+- Add business logic validation in entity methods
+- Entity IDs use `number` (converted from BigInt in Prisma)
+
+```typescript
+export class Tank extends BaseEntity {
+  private _name: string;
+
+  get name(): string {
+    return this._name;
+  }
+
+  updateName(name: string): void {
+    this._name = name;
+    this.touch();
+  }
+}
+```
+
+### DTO Patterns
+
+- DTOs should have `fromEntity()` and `fromEntities()` static methods
+- Use `class-validator` decorators for input validation
+- Never expose domain entities directly to controllers
+- Pagination uses `PaginatedResult<T>` wrapper
+- Avoid duplicating DTOs across layers
+
+```typescript
+export class TankDto {
+  static fromEntity(entity: Tank): TankDto {
+    const dto = new TankDto();
+    dto.id = entity.id;
+    dto.name = entity.name;
+    return dto;
+  }
+
+  static fromEntities(entities: Tank[]): TankDto[] {
+    return entities.map(TankDto.fromEntity);
+  }
+}
+```
+
+### Repository Mapping
+
+- Each repository has a private `toDomain()` method to map Prisma model → Entity
+- Handle `BigInt` to `number` conversion in repositories
+- Use `prisma-extension-pagination` for pagination
+
+```typescript
+private toDomain(prismaTank: any): Tank {
+  return new Tank(
+    Number(prismaTank.id),
+    prismaTank.name,
+    // ... other fields
+  );
+}
+```
+
+### Controller Patterns
+
+- Always wrap responses with `ResponseDto.success()` or `ResponseDto.error()`
+- Use `@UseGuards(JwtAuthGuard)` for protected routes
+- Use `@CurrentUser()` decorator to get authenticated user
+- Use `ParseIntPipe` and `DefaultValuePipe` for query parameters
+- Wrap logic in try-catch, return `ResponseDto.error()` on error
+
+```typescript
+@Controller('tank')
+@UseGuards(JwtAuthGuard)
+export class TankController {
+  @Get()
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+  ) {
+    try {
+      const tanks = await this.tankService.findAll(page);
+      return ResponseDto.success(tanks);
+    } catch (error) {
+      return ResponseDto.error(error.message);
+    }
+  }
+}
+```
+
+### Exception Handling
+
+- Use domain exceptions: `EntityNotFoundException`, `ValidationException`
+- Controllers should catch and wrap errors in `ResponseDto.error()`
+- Never expose internal error details to clients
+
+### Testing Guidelines
+
+- Test files use `.spec.ts` extension
+- Place tests in `__tests__` subdirectory of each layer
+- Unit tests: mock repositories for service tests
+- E2E tests: located in `/test` directory
+- Run tests: `pnpm run test`
+- Coverage: `pnpm run test:cov`

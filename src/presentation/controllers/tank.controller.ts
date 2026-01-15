@@ -1,6 +1,6 @@
 import {
   Body, Controller, Post, Get, Param, Patch, Delete, UseGuards,
-  Query, ParseIntPipe, DefaultValuePipe
+  Query, ParseIntPipe, DefaultValuePipe, ParseBoolPipe
 } from '@nestjs/common';
 import { ResponseDto } from '@presentation/dto/response.dto';
 import { TankService } from '@application/services/tank.service';
@@ -17,7 +17,7 @@ export class TankController {
   @Post()
   async create(
     @Body() createTankDto: CreateTankDto,
-    @CurrentUser() user: UserDto, // Extract authenticated user from JWT
+    @CurrentUser() user: UserDto,
   ) {
     try {
       const tank = await this.tankService.create(createTankDto, user.id);
@@ -29,12 +29,12 @@ export class TankController {
 
   @Get()
   async findAll(
-    @CurrentUser() user: UserDto,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('perPage', new DefaultValuePipe(10), ParseIntPipe) perPage: number,
+    @Query('includeArchived', new DefaultValuePipe(false), ParseBoolPipe) includeArchived: boolean,
   ) {
     try {
-      const tanks = await this.tankService.findAll(user.id, page, perPage);
+      const tanks = await this.tankService.findAll(page, perPage, includeArchived);
       return ResponseDto.success(tanks);
     } catch (error) {
       return ResponseDto.error(error.message);
@@ -70,6 +70,26 @@ export class TankController {
     try {
       const tank = await this.tankService.update(id, updateTankDto);
       return ResponseDto.success(tank, 'Tank updated successfully');
+    } catch (error) {
+      return ResponseDto.error(error.message);
+    }
+  }
+
+  @Patch(':id/archive')
+  async archive(@Param('id') id: number) {
+    try {
+      const tank = await this.tankService.archive(id);
+      return ResponseDto.success(tank, 'Tank archived successfully');
+    } catch (error) {
+      return ResponseDto.error(error.message);
+    }
+  }
+
+  @Patch(':id/unarchive')
+  async unarchive(@Param('id') id: number) {
+    try {
+      const tank = await this.tankService.unarchive(id);
+      return ResponseDto.success(tank, 'Tank unarchived successfully');
     } catch (error) {
       return ResponseDto.error(error.message);
     }

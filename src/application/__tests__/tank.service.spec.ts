@@ -10,9 +10,9 @@ describe('TankService', () => {
     let repository: jest.Mocked<TankRepository>;
 
     // Mock data
-    const mockTank = new Tank(1, 'Test Tank', 60, 40, 30, 1);
+    const mockTank = new Tank(1, 'Test Tank', 60, 40, 30, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 1);
 
-    const mockPaginatedTanks: PaginatedTanks = {
+    const mockPaginatedTanks: PaginatedTanks<Tank> = {
         data: [mockTank],
         meta: {
             total: 1,
@@ -100,11 +100,11 @@ describe('TankService', () => {
 
     describe('findAll', () => {
         it('should return Paginated with tanks', async () => {
-            repository.findByUserId.mockResolvedValue(mockPaginatedTanks);
+            repository.findAll.mockResolvedValue(mockPaginatedTanks);
 
-            const result = await service.findAll(1, 1, 10);
+            const result = await service.findAll(1, 10);
 
-            expect(repository.findByUserId).toHaveBeenCalledWith(1, 1, 10);
+            expect(repository.findAll).toHaveBeenCalledWith(1, 10);
             expect(result.items).toHaveLength(1);
             expect(result.meta.currentPage).toBe(1);
             expect(result.meta.total).toBe(1);

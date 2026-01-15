@@ -1,9 +1,9 @@
 import { IsString, IsNotEmpty, IsEmail, MinLength, IsOptional } from 'class-validator';
 
-// Output DTO for API responses (like Laravel API Resource)
+// Output DTO for API responses
 export class UserDto {
   id: number;
-  authId: string;
+  email: string;
   fullname?: string;
   createdAt: Date;
 
@@ -11,7 +11,7 @@ export class UserDto {
   static fromEntity(user: any): UserDto {
     const dto = new UserDto();
     dto.id = user.id;
-    dto.authId = user.auth_id;
+    dto.email = user.email;
     dto.fullname = user.fullname;
     dto.createdAt = user.created_at;
     return dto;
@@ -48,11 +48,17 @@ export class AuthResponseDto {
   user: UserDto;
   accessToken: string;
   refreshToken: string;
-  expiresIn: number;
+  expiresIn: string | number;
 }
 
 export class ValidateTokenDto {
   @IsString()
   @IsNotEmpty()
   accessToken: string;
+}
+
+export class RefreshTokenDto {
+  @IsString()
+  @IsNotEmpty()
+  refreshToken: string;
 }

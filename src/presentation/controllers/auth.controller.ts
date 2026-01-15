@@ -1,13 +1,13 @@
 import { Body, Controller, Post, Get, UseGuards } from '@nestjs/common';
 import { AuthService } from '@application/services/auth.service';
-import { LoginDto, RegisterDto } from '@application/dtos/auth.dto';
+import { LoginDto, RegisterDto, RefreshTokenDto } from '@application/dtos/auth.dto';
 import { ResponseDto } from '@presentation/dto/response.dto';
 import { JwtAuthGuard } from '@presentation/guards/jwt-auth.guard';
 import { CurrentUser } from '@presentation/decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
@@ -24,6 +24,16 @@ export class AuthController {
     try {
       const result = await this.authService.login(loginDto);
       return ResponseDto.success(result, 'Login successful');
+    } catch (error) {
+      return ResponseDto.error(error.message);
+    }
+  }
+
+  @Post('refresh')
+  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+    try {
+      const result = await this.authService.refreshTokens(refreshTokenDto);
+      return ResponseDto.success(result, 'Token refreshed successfully');
     } catch (error) {
       return ResponseDto.error(error.message);
     }

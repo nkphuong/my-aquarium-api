@@ -1,49 +1,49 @@
 import { BaseEntity } from './base.entity';
+import { TankDimensions, TankType } from '../enums/tank.enum';
 
 export class Tank extends BaseEntity {
   private _name: string;
-  private _width: number;
-  private _height: number;
-  private _length: number;
+  private _dimensions?: TankDimensions;
   private _user_id?: number;
-  private _type?: string;
+  private _tank_type?: string; // Stored as string, but logically compatible with TankType
   private _style?: string;
   private _description?: string;
-  private _status?: string;
-  private _setup_at?: Date;
-  private _water_volume?: number;
-  private _avatar?: string;
-
+  private _setup_date?: Date;
+  private _volume_liters?: number;
+  private _cover_image_url?: string;
+  private _substrate?: string;
+  private _filter_type?: string;
+  private _is_archived: boolean;
 
   constructor(
     id: number,
     name: string,
-    width: number,
-    height: number,
-    length: number,
-    type?: string,
+    dimensions?: TankDimensions,
+    tank_type?: string,
     style?: string,
     description?: string,
-    status?: string,
-    setup_at?: Date,
-    water_volume?: number,
-    avatar?: string,
+    setup_date?: Date,
+    volume_liters?: number,
+    cover_image_url?: string,
+    substrate?: string,
+    filter_type?: string,
+    is_archived: boolean = false,
     user_id?: number,
     created_at?: Date,
     updated_at?: Date,
   ) {
     super(id, created_at, updated_at);
     this._name = name;
-    this._width = width;
-    this._height = height;
-    this._length = length;
-    this._type = type;
+    this._dimensions = dimensions;
+    this._tank_type = tank_type;
     this._style = style;
     this._description = description;
-    this._status = status;
-    this._setup_at = setup_at;
-    this._water_volume = water_volume;
-    this._avatar = avatar;
+    this._setup_date = setup_date;
+    this._volume_liters = volume_liters;
+    this._cover_image_url = cover_image_url;
+    this._substrate = substrate;
+    this._filter_type = filter_type;
+    this._is_archived = is_archived;
     this._user_id = user_id;
   }
 
@@ -51,20 +51,12 @@ export class Tank extends BaseEntity {
     return this._name;
   }
 
-  get width(): number {
-    return this._width;
+  get dimensions(): TankDimensions | undefined {
+    return this._dimensions;
   }
 
-  get height(): number {
-    return this._height;
-  }
-
-  get length(): number {
-    return this._length;
-  }
-
-  get type(): string | undefined {
-    return this._type;
+  get tank_type(): string | undefined {
+    return this._tank_type;
   }
 
   get style(): string | undefined {
@@ -75,30 +67,36 @@ export class Tank extends BaseEntity {
     return this._description;
   }
 
-  get status(): string | undefined {
-    return this._status;
+  get setup_date(): Date | undefined {
+    return this._setup_date;
   }
 
-  get setup_at(): Date | undefined {
-    return this._setup_at;
+  get volume_liters(): number | undefined {
+    return this._volume_liters;
   }
 
-  get water_volume(): number | undefined {
-    return this._water_volume;
+  get cover_image_url(): string | undefined {
+    return this._cover_image_url;
   }
 
-  get avatar(): string | undefined {
-    return this._avatar;
+  get substrate(): string | undefined {
+    return this._substrate;
+  }
+
+  get filter_type(): string | undefined {
+    return this._filter_type;
+  }
+
+  get is_archived(): boolean {
+    return this._is_archived;
   }
 
   get user_id(): number | undefined {
     return this._user_id;
   }
 
-  updateDimensions(width: number, height: number, length: number): void {
-    this._width = width;
-    this._height = height;
-    this._length = length;
+  updateDimensions(dimensions: TankDimensions): void {
+    this._dimensions = dimensions;
     this.touch();
   }
 
@@ -106,8 +104,6 @@ export class Tank extends BaseEntity {
     this._name = name;
     this.touch();
   }
-
-
 
   assignToUser(user_id: number): void {
     this._user_id = user_id;
@@ -119,8 +115,8 @@ export class Tank extends BaseEntity {
     this.touch();
   }
 
-  updateType(type: string): void {
-    this._type = type;
+  updateTankType(type: string): void {
+    this._tank_type = type;
     this.touch();
   }
 
@@ -134,24 +130,38 @@ export class Tank extends BaseEntity {
     this.touch();
   }
 
-  updateStatus(status: string): void {
-    this._status = status;
+  updateSetupDate(setup_date: Date): void {
+    this._setup_date = setup_date;
     this.touch();
   }
 
-  updateSetupAt(setup_at: Date): void {
-    this._setup_at = setup_at;
+  updateVolumeLiters(volume_liters: number): void {
+    this._volume_liters = volume_liters;
     this.touch();
   }
 
-  updateWaterVolume(water_volume: number): void {
-    this._water_volume = water_volume;
+  updateCoverImageUrl(url: string): void {
+    this._cover_image_url = url;
     this.touch();
   }
 
-  updateAvatar(avatar: string): void {
-    this._avatar = avatar;
+  updateSubstrate(substrate: string): void {
+    this._substrate = substrate;
     this.touch();
   }
 
+  updateFilterType(filterType: string): void {
+    this._filter_type = filterType;
+    this.touch();
+  }
+
+  archive(): void {
+    this._is_archived = true;
+    this.touch();
+  }
+
+  unarchive(): void {
+    this._is_archived = false;
+    this.touch();
+  }
 }

@@ -4,25 +4,36 @@ import { CreateTankDto, UpdateTankDto, TankDto } from '@application/dtos/tank.dt
 import { PaginatedResult } from '@application/dtos/pagination.dto';
 import { Tank } from '@domain/entities/tank.entity';
 import { EntityNotFoundException } from '@domain/exceptions/domain.exception';
+import { TankDimensions } from '@domain/enums/tank.enum';
 
 @Injectable()
 export class TankService {
   constructor(private readonly tankRepository: TankRepository) { }
 
   async create(dto: CreateTankDto, userId: number): Promise<TankDto> {
+    // Transform DTO dimensions to Entity dimensions interface
+    let dimensions: TankDimensions | undefined;
+    if (dto.dimensions) {
+      dimensions = {
+        length: dto.dimensions.length,
+        width: dto.dimensions.width,
+        height: dto.dimensions.height,
+      };
+    }
+
     const tank = new Tank(
-      0,
+      0, // ID provided by DB
       dto.name,
-      dto.width,
-      dto.height,
-      dto.length,
-      dto.type,
+      dimensions,
+      dto.tank_type,
       dto.style,
       dto.description,
-      dto.status,
-      dto.setup_at,
-      dto.water_volume,
-      dto.avatar,
+      dto.setup_date,
+      dto.volume_liters,
+      dto.cover_image_url,
+      dto.substrate,
+      dto.filter_type,
+      false, // is_archived default
       userId,
     );
 
@@ -30,17 +41,10 @@ export class TankService {
     return TankDto.fromEntity(saved);
   }
 
-  async findAll(userId: number, page: number, perPage: number): Promise<PaginatedResult<TankDto>> {
-    const paginatedTanks = await this.tankRepository.findByUserId(userId, page, perPage);
-
-    // Type guard to ensure we have PaginatedTanks
-    if (!Array.isArray(paginatedTanks) && 'data' in paginatedTanks && 'meta' in paginatedTanks) {
-      const tankDtos = TankDto.fromEntities(paginatedTanks.data);
-      return PaginatedResult.create(tankDtos, paginatedTanks.meta);
-    }
-
-    // This should never happen with the current implementation
-    throw new Error('Expected paginated result from repository');
+  async findAll(page: number, perPage: number, includeArchived: boolean = false): Promise<PaginatedResult<TankDto>> {
+    const paginatedTanks = await this.tankRepository.findAll(page, perPage, includeArchived);
+    const tankDtos = TankDto.fromEntities(paginatedTanks.data);
+    return PaginatedResult.create(tankDtos, paginatedTanks.meta);
   }
 
   async findById(id: number): Promise<TankDto> {
@@ -53,14 +57,7 @@ export class TankService {
 
   async findByUserId(userId: number): Promise<TankDto[]> {
     const tanks = await this.tankRepository.findByUserId(userId);
-
-    // Handle the case where repository returns paginated or non-paginated result
-    if (Array.isArray(tanks)) {
-      return TankDto.fromEntities(tanks);
-    }
-
-    // If it returns PaginatedTanks, just use the data
-    return TankDto.fromEntities(tanks.data);
+    return TankDto.fromEntities(tanks);
   }
 
   async update(id: number, dto: UpdateTankDto): Promise<TankDto> {
@@ -70,17 +67,42 @@ export class TankService {
     }
 
     if (dto.name) tank.updateName(dto.name);
-    if (dto.width !== undefined && dto.height !== undefined && dto.length !== undefined) {
-      tank.updateDimensions(dto.width, dto.height, dto.length);
+    if (dto.dimensions) {
+      tank.updateDimensions({
+        length: dto.dimensions.length,
+        width: dto.dimensions.width,
+        height: dto.dimensions.height,
+      });
     }
-    if (dto.type !== undefined) tank.updateType(dto.type);
+    if (dto.tank_type !== undefined) tank.updateTankType(dto.tank_type);
     if (dto.style !== undefined) tank.updateStyle(dto.style);
     if (dto.description !== undefined) tank.updateDescription(dto.description);
-    if (dto.status !== undefined) tank.updateStatus(dto.status);
-    if (dto.setup_at !== undefined) tank.updateSetupAt(dto.setup_at);
-    if (dto.water_volume !== undefined) tank.updateWaterVolume(dto.water_volume);
-    if (dto.avatar !== undefined) tank.updateAvatar(dto.avatar);
+    if (dto.setup_date !== undefined) tank.updateSetupDate(dto.setup_date);
+    if (dto.volume_liters !== undefined) tank.updateVolumeLiters(dto.volume_liters);
+    if (dto.cover_image_url !== undefined) tank.updateCoverImageUrl(dto.cover_image_url);
+    if (dto.substrate !== undefined) tank.updateSubstrate(dto.substrate);
+    if (dto.filter_type !== undefined) tank.updateFilterType(dto.filter_type);
 
+    const updated = await this.tankRepository.update(id, tank);
+    return TankDto.fromEntity(updated);
+  }
+
+  async archive(id: number): Promise<TankDto> {
+    const tank = await this.tankRepository.findById(id);
+    if (!tank) {
+      throw new EntityNotFoundException('Tank', id);
+    }
+    tank.archive();
+    const updated = await this.tankRepository.update(id, tank);
+    return TankDto.fromEntity(updated);
+  }
+
+  async unarchive(id: number): Promise<TankDto> {
+    const tank = await this.tankRepository.findById(id);
+    if (!tank) {
+      throw new EntityNotFoundException('Tank', id);
+    }
+    tank.unarchive();
     const updated = await this.tankRepository.update(id, tank);
     return TankDto.fromEntity(updated);
   }

@@ -4,15 +4,17 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  schemas  = ["public", "auth"]
+  schemas  = ["public"]
 }
 
 // Application User model - maps to public.users table
 model User {
-  id         BigInt   @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  fullname   String?  @db.VarChar
-  auth_id    String?  @unique @db.Uuid
+  id                 BigInt   @id @default(autoincrement())
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
+  email              String   @unique @db.VarChar(255)
+  password           String   @db.VarChar(255)
+  fullname           String?  @db.VarChar
+  refresh_token_hash String?  @db.VarChar
 
   // Relationships
   tanks Tank[] // One user has many tanks
@@ -39,27 +41,49 @@ model Fish {
 
 // Tank model
 model Tank {
-  id           BigInt    @id @default(autoincrement())
-  name         String
-  width        Int
-  height       Int
-  length       Int
-  water_volume Int?
-  avatar       String?
-  type         String?
-  style        String?
-  description  String?
-  setup_at     DateTime? @db.Timestamptz(6)
-  created_at   DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at   DateTime  @updatedAt @db.Timestamptz(6)
-  user_id      BigInt?
-  status       String?
+  id              BigInt    @id @default(autoincrement())
+  user_id         BigInt?
+  name            String    @db.VarChar(100)
+  volume_liters   Decimal?  @db.Decimal(10, 2)
+  dimensions      Json? // {length, width, height} in cm
+  tank_type       String?   @db.VarChar(20) // freshwater | saltwater | planted | reef
+  style           String?   @db.VarChar(50)
+  substrate       String?   @db.VarChar(100)
+  filter_type     String?   @db.VarChar(100)
+  cover_image_url String?   @db.Text
+  description     String?   @db.Text
+  setup_date      DateTime? @db.Date
+  is_archived     Boolean   @default(false)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime  @updatedAt @db.Timestamptz(6)
 
   // Relationships
-  user   User?  @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  fishes Fish[] // One tank has many fishes
+  user       User?            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  livestock  Livestock[]
+  fishes     Fish[]
+  parameters WaterParameter[]
 
   @@map("tanks")
+  @@schema("public")
+}
+
+model Livestock {
+  id              BigInt   @id @default(autoincrement())
+  tank_id         BigInt?
+  name            String   @db.VarChar(100)
+  scientific_name String?  @db.VarChar(150)
+  fishbase_id     Int?
+  type            String   @db.VarChar(20) // FISH, PLANT, INVERTEBRATE
+  quantity        Int      @default(1)
+  status          String   @db.VarChar(20) // HEALTHY, SICK, DECEASED, REMOVED
+  image_url       String?  @db.Text
+  added_date      DateTime @default(now()) @db.Date
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @updatedAt @db.Timestamptz(6)
+
+  tank Tank? @relation(fields: [tank_id], references: [id], onDelete: Cascade)
+
+  @@map("livestock")
   @@schema("public")
 }
 
@@ -116,8 +140,30 @@ model FishSpecies {
   // Vector dùng cho Supabase pgvector (Cần bật extension vector)
   // Lưu ý: Prisma chưa support native type 'vector' hoàn hảo, 
   // bạn cần dùng Unsupported("vector") hoặc quản lý raw SQL.
-  embedding Unsupported("vector(1536)")?
+  // embedding Unsupported("vector(1536)")?
 
   @@map("fish_species")
   @@schema("public")
 }
+
+model WaterParameter {
+  id          BigInt   @id @default(autoincrement())
+  tank_id     BigInt
+  tested_at   DateTime @default(now()) @db.Timestamptz(6)
+  temperature Decimal? @db.Decimal(4, 1)
+  ph          Decimal? @db.Decimal(3, 1)
+  ammonia     Decimal? @db.Decimal(5, 3)
+  nitrite     Decimal? @db.Decimal(5, 3)
+  nitrate     Decimal? @db.Decimal(6, 2)
+  gh          Decimal? @db.Decimal(5, 1)
+  kh          Decimal? @db.Decimal(5, 1)
+  notes       String?  @db.Text
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @updatedAt @db.Timestamptz(6)
+
+  tank        Tank     @relation(fields: [tank_id], references: [id], onDelete: Cascade)
+
+  @@map("water_parameters")
+  @@schema("public")
+}
+

@@ -8,6 +8,8 @@ import { FishModule } from '@modules/fish/fish.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { TankModule } from '@modules/tank/tank.module';
 import { FishSpeciesModule } from '@modules/fish-species/fish-species.module';
+import { LivestockModule } from '@modules/livestock/livestock.module';
+import { WaterParameterModule } from '@modules/water-parameter/water-parameter.module';
 
 @Module({
   imports: [
@@ -20,8 +22,10 @@ import { FishSpeciesModule } from '@modules/fish-species/fish-species.module';
     AuthModule,
     TankModule,
     FishSpeciesModule,
+    LivestockModule,
+    WaterParameterModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

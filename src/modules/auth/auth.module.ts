@@ -2,24 +2,21 @@ import { Module } from '@nestjs/common';
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { AuthService } from '@application/services/auth.service';
 import { UserRepository } from '@infrastructure/repositories/user.repository';
-import { SupabaseAuthService } from '@infrastructure/auth/supabase-auth.service';
-import { JwtAuthGuard } from '@presentation/guards/jwt-auth.guard';
-import { SupabaseModule } from '@supabase/supabase.module';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from '@infrastructure/auth/jwt.strategy';
+import { ACCESS_TOKEN_EXPIRES_IN } from '@application/services/auth.service';
 
 @Module({
-  imports: [SupabaseModule],
-  controllers: [AuthController],
-  providers: [
-    // Service
-    AuthService,
-
-    // Infrastructure
-    UserRepository,
-    SupabaseAuthService,
-
-    // Guard
-    JwtAuthGuard,
+  imports: [
+    PassportModule,
+    JwtModule.register({
+      secret: 'secretKey', // TODO: Use env
+      signOptions: { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
+    }),
   ],
-  exports: [JwtAuthGuard, AuthService], // Export for other modules
+  controllers: [AuthController],
+  providers: [AuthService, UserRepository, JwtStrategy],
+  exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

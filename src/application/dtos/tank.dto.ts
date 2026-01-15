@@ -6,32 +6,46 @@ import {
   Min,
   MaxLength,
   IsDate,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { TankType } from '../../domain/enums/tank.enum';
 
-// Input DTO for creating tank (like Laravel FormRequest)
+export class TankDimensionsDto {
+  @IsNumber()
+  @Min(1)
+  length: number;
+
+  @IsNumber()
+  @Min(1)
+  width: number;
+
+  @IsNumber()
+  @Min(1)
+  height: number;
+}
+
+// Input DTO for creating tank
 export class CreateTankDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   name: string;
 
-  @IsNumber()
-  @Min(1, { message: 'Width must be at least 1 cm' })
-  width: number;
+  @ValidateNested()
+  @Type(() => TankDimensionsDto)
+  @IsOptional()
+  dimensions?: TankDimensionsDto;
 
+  @IsOptional()
   @IsNumber()
-  @Min(1, { message: 'Height must be at least 1 cm' })
-  height: number;
-
-  @IsNumber()
-  @Min(1, { message: 'Length must be at least 1 cm' })
-  length: number;
+  @Min(0)
+  volume_liters?: number;
 
   @IsOptional()
   @IsString()
-  @MaxLength(50)
-  type?: string;
+  @MaxLength(20)
+  tank_type?: string; // Should validate against TankType enum values if strict, but string is flexible
 
   @IsOptional()
   @IsString()
@@ -40,32 +54,31 @@ export class CreateTankDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(500)
+  @MaxLength(5000) // Increased for rich text
   description?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  status?: string;
 
   @IsOptional()
   @IsDate()
   @Type(() => Date)
-  setup_at?: Date;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  water_volume?: number;
+  setup_date?: Date;
 
   @IsOptional()
   @IsString()
-  @MaxLength(255)
-  avatar?: string;
+  @MaxLength(255) // Text in DB, but URL usually fits in string
+  cover_image_url?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  substrate?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  filter_type?: string;
 }
 
-// Input DTO for updating tank (like Laravel FormRequest)
-// Uses Partial to make all fields optional - DRY!
+// Input DTO for updating tank
 export class UpdateTankDto {
   @IsOptional()
   @IsString()
@@ -73,97 +86,88 @@ export class UpdateTankDto {
   name?: string;
 
   @IsOptional()
-  @IsNumber()
-  @Min(1, { message: 'Width must be at least 1 cm' })
-  width?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(1, { message: 'Height must be at least 1 cm' })
-  height?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(1, { message: 'Length must be at least 1 cm' })
-  length?: number;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  type?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  style?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
-  description?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  status?: string;
-
-  @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  setup_at?: Date;
+  @ValidateNested()
+  @Type(() => TankDimensionsDto)
+  dimensions?: TankDimensionsDto;
 
   @IsOptional()
   @IsNumber()
   @Min(0)
-  water_volume?: number;
+  volume_liters?: number;
 
   @IsOptional()
   @IsString()
-  @MaxLength(255)
-  avatar?: string;
+  @MaxLength(20)
+  tank_type?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  style?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(5000)
+  description?: string;
+
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  setup_date?: Date;
+
+  @IsOptional()
+  @IsString()
+  cover_image_url?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  substrate?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  filter_type?: string;
 }
 
-// Output DTO for API responses (like Laravel API Resource)
-// This transforms domain entities to clean API responses
+// Output DTO for API responses
 export class TankDto {
-  id: number;
+  id: number; // BigInt handled as number/string in DTO usually? The repository mapped BigInt to Number.
   name: string;
-  width: number;
-  height: number;
-  length: number;
-  type?: string;
+  dimensions?: TankDimensionsDto;
+  volumeLiters?: number;
+  tankType?: string;
   style?: string;
   description?: string;
-  status?: string;
-  setup_at?: Date;
-  water_volume?: number;
-  avatar?: string;
+  substrate?: string;
+  filterType?: string;
+  coverImageUrl?: string;
+  setupDate?: Date;
+  isArchived: boolean;
   userId?: number;
   createdAt: Date;
   updatedAt: Date;
 
-  // Factory method to create from domain entity (like Laravel's Resource)
   static fromEntity(tank: any): TankDto {
     const dto = new TankDto();
-    dto.id = tank.id;
+    dto.id = Number(tank.id); // Ensure number
     dto.name = tank.name;
-    dto.width = tank.width;
-    dto.height = tank.height;
-    dto.length = tank.length;
-    dto.type = tank.type;
+    dto.dimensions = tank.dimensions;
+    dto.volumeLiters = tank.volume_liters;
+    dto.tankType = tank.tank_type;
     dto.style = tank.style;
     dto.description = tank.description;
-    dto.status = tank.status;
-    dto.setup_at = tank.setup_at;
-    dto.water_volume = tank.water_volume;
-    dto.avatar = tank.avatar;
+    dto.substrate = tank.substrate;
+    dto.filterType = tank.filter_type;
+    dto.coverImageUrl = tank.cover_image_url;
+    dto.setupDate = tank.setup_date;
+    dto.isArchived = tank.is_archived;
     dto.userId = tank.user_id;
     dto.createdAt = tank.created_at;
     dto.updatedAt = tank.updated_at;
     return dto;
   }
 
-  // Collection method (like Laravel's ResourceCollection)
   static fromEntities(tanks: any[]): TankDto[] {
     return tanks.map(tank => TankDto.fromEntity(tank));
   }

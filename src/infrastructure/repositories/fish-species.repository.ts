@@ -1,187 +1,126 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { FishSpecies } from '@domain/entities/fish-species.entity';
-import {
-  CareLevel,
-  Temperament,
-  DietType,
-  FlowPreference,
-} from '@domain/enums/fish-species.enum';
 
 @Injectable()
 export class FishSpeciesRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
+
+  async findAll(keyword?: string): Promise<FishSpecies[]> {
+    const whereClause: any = {};
+    if (keyword) {
+      whereClause.OR = [
+        { name_en: { contains: keyword, mode: 'insensitive' } },
+        { name_vn: { contains: keyword, mode: 'insensitive' } },
+        { scientific_name: { contains: keyword, mode: 'insensitive' } },
+      ];
+    }
+
+    const items = await this.prisma.fishSpecies.findMany({
+      where: whereClause,
+      orderBy: { name_en: 'asc' },
+    });
+    return items.map(this.toDomain);
+  }
 
   async findById(id: number): Promise<FishSpecies | null> {
-    const fishSpecies = await this.prisma.fishSpecies.findUnique({
+    const item = await this.prisma.fishSpecies.findUnique({
       where: { id },
     });
-    return fishSpecies ? this.toDomain(fishSpecies) : null;
-  }
-
-  async findAll(): Promise<FishSpecies[]> {
-    const fishSpecies = await this.prisma.fishSpecies.findMany();
-    return fishSpecies.map((fs) => this.toDomain(fs));
-  }
-
-  async findByNameEn(nameEn: string): Promise<FishSpecies | null> {
-    const fishSpecies = await this.prisma.fishSpecies.findUnique({
-      where: { name_en: nameEn },
-    });
-    return fishSpecies ? this.toDomain(fishSpecies) : null;
-  }
-
-  async findByCareLevel(careLevel: string): Promise<FishSpecies[]> {
-    const fishSpecies = await this.prisma.fishSpecies.findMany({
-      where: { care_level: careLevel },
-    });
-    return fishSpecies.map((fs) => this.toDomain(fs));
-  }
-
-  async findByTemperament(temperament: string): Promise<FishSpecies[]> {
-    const fishSpecies = await this.prisma.fishSpecies.findMany({
-      where: { temperament },
-    });
-    return fishSpecies.map((fs) => this.toDomain(fs));
-  }
-
-  async findCompatibleSpecies(waterParams: {
-    tempMin: number;
-    tempMax: number;
-    phMin: number;
-    phMax: number;
-  }): Promise<FishSpecies[]> {
-    const fishSpecies = await this.prisma.fishSpecies.findMany({
-      where: {
-        AND: [
-          { temp_min: { lte: waterParams.tempMax } },
-          { temp_max: { gte: waterParams.tempMin } },
-          { ph_min: { lte: waterParams.phMax } },
-          { ph_max: { gte: waterParams.phMin } },
-        ],
-      },
-    });
-    return fishSpecies.map((fs) => this.toDomain(fs));
+    return item ? this.toDomain(item) : null;
   }
 
   async save(entity: FishSpecies): Promise<FishSpecies> {
-    const fishSpecies = await this.prisma.fishSpecies.create({
-      data: {
-        name_en: entity.nameEn,
-        name_vn: entity.nameVn,
-        temp_min: entity.tempMin,
-        temp_max: entity.tempMax,
-        ph_min: entity.phMin,
-        ph_max: entity.phMax,
-        min_tank_size: entity.minTankSize,
-        size_max: entity.sizeMax,
-        care_level: entity.careLevel,
-        temperament: entity.temperament,
-        diet_type: entity.dietType,
-        description: entity.description,
-        ...(entity.scientificName !== undefined && {
-          scientific_name: entity.scientificName,
-        }),
-        ...(entity.aliases.length > 0 && { aliases: entity.aliases }),
-        ...(entity.imageUrl !== undefined && { image_url: entity.imageUrl }),
-        ...(entity.ghMin !== undefined && { gh_min: entity.ghMin }),
-        ...(entity.ghMax !== undefined && { gh_max: entity.ghMax }),
-        bioload_level: entity.bioloadLevel,
-        flow_preference: entity.flowPreference,
-        is_schooling: entity.isSchooling,
-        min_school_size: entity.minSchoolSize,
-        plant_safe: entity.plantSafe,
-        substrate_digger: entity.substrateDigger,
-        jumper: entity.jumper,
-      },
-    });
-    return this.toDomain(fishSpecies);
+    const data = {
+      name_en: entity.nameEn,
+      name_vn: entity.nameVn,
+      scientific_name: entity.scientificName,
+      aliases: entity.aliases,
+      image_url: entity.imageUrl,
+
+      temp_min: entity.tempMin,
+      temp_max: entity.tempMax,
+      ph_min: entity.phMin,
+      ph_max: entity.phMax,
+      gh_min: entity.ghMin,
+      gh_max: entity.ghMax,
+
+      min_tank_size: entity.minTankSize,
+      size_max: entity.sizeMax,
+      bioload_level: entity.bioloadLevel,
+      flow_preference: entity.flowPreference,
+
+      care_level: entity.careLevel,
+      temperament: entity.temperament,
+      diet_type: entity.dietType,
+
+      is_schooling: entity.isSchooling,
+      min_school_size: entity.minSchoolSize,
+      plant_safe: entity.plantSafe,
+      substrate_digger: entity.substrateDigger,
+      jumper: entity.jumper,
+
+      description: entity.description,
+    };
+
+    if (entity.id && entity.id > 0) {
+      const updated = await this.prisma.fishSpecies.update({
+        where: { id: entity.id },
+        data,
+      });
+      return this.toDomain(updated);
+    } else {
+      // Upsert logic based on strict unique constraints (name_en) or just create
+      // Simplification: try update if ID exists, else create.
+      // For sync jobs, we often match by name or external ID. 
+      // Let's assume name_en is unique key for now as per schema.
+
+      const existing = await this.prisma.fishSpecies.findUnique({
+        where: { name_en: entity.nameEn }
+      });
+
+      if (existing) {
+        const updated = await this.prisma.fishSpecies.update({
+          where: { id: existing.id },
+          data,
+        });
+        return this.toDomain(updated);
+      }
+
+      const created = await this.prisma.fishSpecies.create({ data });
+      return this.toDomain(created);
+    }
   }
 
-  async update(id: number, entity: Partial<FishSpecies>): Promise<FishSpecies> {
-    const fishSpecies = await this.prisma.fishSpecies.update({
-      where: { id },
-      data: {
-        ...(entity.nameEn !== undefined && { name_en: entity.nameEn }),
-        ...(entity.nameVn !== undefined && { name_vn: entity.nameVn }),
-        ...(entity.scientificName !== undefined && {
-          scientific_name: entity.scientificName,
-        }),
-        ...(entity.aliases !== undefined && { aliases: entity.aliases }),
-        ...(entity.imageUrl !== undefined && { image_url: entity.imageUrl }),
-        ...(entity.tempMin !== undefined && { temp_min: entity.tempMin }),
-        ...(entity.tempMax !== undefined && { temp_max: entity.tempMax }),
-        ...(entity.phMin !== undefined && { ph_min: entity.phMin }),
-        ...(entity.phMax !== undefined && { ph_max: entity.phMax }),
-        ...(entity.ghMin !== undefined && { gh_min: entity.ghMin }),
-        ...(entity.ghMax !== undefined && { gh_max: entity.ghMax }),
-        ...(entity.minTankSize !== undefined && {
-          min_tank_size: entity.minTankSize,
-        }),
-        ...(entity.sizeMax !== undefined && { size_max: entity.sizeMax }),
-        ...(entity.bioloadLevel !== undefined && {
-          bioload_level: entity.bioloadLevel,
-        }),
-        ...(entity.flowPreference !== undefined && {
-          flow_preference: entity.flowPreference,
-        }),
-        ...(entity.careLevel !== undefined && { care_level: entity.careLevel }),
-        ...(entity.temperament !== undefined && {
-          temperament: entity.temperament,
-        }),
-        ...(entity.dietType !== undefined && { diet_type: entity.dietType }),
-        ...(entity.isSchooling !== undefined && {
-          is_schooling: entity.isSchooling,
-        }),
-        ...(entity.minSchoolSize !== undefined && {
-          min_school_size: entity.minSchoolSize,
-        }),
-        ...(entity.plantSafe !== undefined && { plant_safe: entity.plantSafe }),
-        ...(entity.substrateDigger !== undefined && {
-          substrate_digger: entity.substrateDigger,
-        }),
-        ...(entity.jumper !== undefined && { jumper: entity.jumper }),
-        ...(entity.description !== undefined && {
-          description: entity.description,
-        }),
-      },
-    });
-    return this.toDomain(fishSpecies);
-  }
-
-  async delete(id: number): Promise<void> {
-    await this.prisma.fishSpecies.delete({ where: { id } });
-  }
-
-  private toDomain(prismaFishSpecies: any): FishSpecies {
+  private toDomain(prismaItem: any): FishSpecies {
     return new FishSpecies(
-      prismaFishSpecies.id,
-      prismaFishSpecies.name_en,
-      prismaFishSpecies.name_vn,
-      prismaFishSpecies.temp_min,
-      prismaFishSpecies.temp_max,
-      prismaFishSpecies.ph_min,
-      prismaFishSpecies.ph_max,
-      prismaFishSpecies.min_tank_size,
-      prismaFishSpecies.size_max,
-      prismaFishSpecies.care_level as CareLevel,
-      prismaFishSpecies.temperament as Temperament,
-      prismaFishSpecies.diet_type as DietType,
-      prismaFishSpecies.description,
-      prismaFishSpecies.scientific_name,
-      prismaFishSpecies.aliases || [],
-      prismaFishSpecies.image_url,
-      prismaFishSpecies.gh_min,
-      prismaFishSpecies.gh_max,
-      prismaFishSpecies.bioload_level,
-      prismaFishSpecies.flow_preference as FlowPreference,
-      prismaFishSpecies.is_schooling,
-      prismaFishSpecies.min_school_size,
-      prismaFishSpecies.plant_safe,
-      prismaFishSpecies.substrate_digger,
-      prismaFishSpecies.jumper,
-      prismaFishSpecies.create_at,
-      prismaFishSpecies.update_at,
+      prismaItem.id,
+      prismaItem.name_en,
+      prismaItem.name_vn,
+      prismaItem.temp_min,
+      prismaItem.temp_max,
+      prismaItem.ph_min,
+      prismaItem.ph_max,
+      prismaItem.min_tank_size,
+      prismaItem.size_max,
+      prismaItem.care_level,
+      prismaItem.temperament,
+      prismaItem.diet_type,
+      prismaItem.description,
+      prismaItem.scientific_name,
+      prismaItem.aliases,
+      prismaItem.image_url,
+      prismaItem.gh_min,
+      prismaItem.gh_max,
+      prismaItem.bioload_level,
+      prismaItem.flow_preference,
+      prismaItem.is_schooling,
+      prismaItem.min_school_size,
+      prismaItem.plant_safe,
+      prismaItem.substrate_digger,
+      prismaItem.jumper,
+      prismaItem.create_at,
+      prismaItem.update_at,
     );
   }
 }

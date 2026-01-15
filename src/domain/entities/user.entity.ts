@@ -1,36 +1,44 @@
 import { BaseEntity } from './base.entity';
 
 export class User extends BaseEntity {
-  private _auth_id: string;
+  private _email: string;
+  private _password?: string;
   private _fullname?: string;
+  private _refreshTokenHash?: string;
 
   constructor(
     id: number,
-    auth_id: string,
+    email: string,
+    password?: string,
     fullname?: string,
-    createdAt?: Date,
-    updatedAt?: Date,
+    refreshTokenHash?: string,
+    created_at?: Date,
+    updated_at?: Date,
   ) {
-    super(id, createdAt, updatedAt);
-    this._auth_id = auth_id;
+    super(id, created_at, updated_at);
+    this._email = email;
+    this._password = password;
     this._fullname = fullname;
+    this._refreshTokenHash = refreshTokenHash;
   }
 
-  get auth_id(): string {
-    return this._auth_id;
+  get email(): string {
+    return this._email;
   }
 
-
+  get password(): string | undefined {
+    return this._password;
+  }
 
   get fullname(): string | undefined {
     return this._fullname;
   }
 
-
-  updateProfile(fullname?: string): void {
-    this._fullname = fullname;
-    this.touch();
+  get refreshTokenHash(): string | undefined {
+    return this._refreshTokenHash;
   }
 
-  // Business rule: Email cannot be changed directly (managed by Supabase Auth)
+  updateRefreshToken(hash: string | null) {
+    this._refreshTokenHash = hash || undefined;
+  }
 }
