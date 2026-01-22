@@ -1,22 +1,31 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from '@presentation/controllers/auth.controller';
-import { AuthService } from '@application/services/auth.service';
-import { UserRepository } from '@infrastructure/repositories/user.repository';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from '@infrastructure/auth/jwt.strategy';
-import { ACCESS_TOKEN_EXPIRES_IN } from '@application/services/auth.service';
+import { AuthController } from './controllers/auth.controller';
+import { AuthManager } from './managers/auth.manager';
+import { UserAccessor } from './accessors/user.accessor';
+import { USER_ACCESSOR } from './accessors/user.accessor.interface';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtAuthGuard } from '@core/guards/jwt-auth.guard';
 
 @Module({
   imports: [
-    PassportModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: 'secretKey', // TODO: Use env
-      signOptions: { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
+      signOptions: { expiresIn: '5m' },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserRepository, JwtStrategy],
-  exports: [AuthService],
+  providers: [
+    AuthManager,
+    {
+      provide: USER_ACCESSOR,
+      useClass: UserAccessor,
+    },
+    JwtStrategy,
+    JwtAuthGuard,
+  ],
+  exports: [USER_ACCESSOR, AuthManager, JwtAuthGuard, JwtModule],
 })
 export class AuthModule { }

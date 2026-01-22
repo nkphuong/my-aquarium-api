@@ -15,13 +15,33 @@
     "outDir": "./dist",
     "baseUrl": "./src",
     "paths": {
-      "@domain/*": ["domain/*"],
-      "@application/*": ["application/*"],
-      "@infrastructure/*": ["infrastructure/*"],
-      "@presentation/*": ["presentation/*"],
-      "@modules/*": ["modules/*"],
-      "@supabase/*": ["supabase/*"],
-      "@prisma/*": ["../generated/prisma/*"]
+      "@core/*": [
+        "core/*"
+      ],
+      "@engines/*": [
+        "engines/*"
+      ],
+      "@domain/*": [
+        "domain/*"
+      ],
+      "@application/*": [
+        "application/*"
+      ],
+      "@infrastructure/*": [
+        "infrastructure/*"
+      ],
+      "@presentation/*": [
+        "presentation/*"
+      ],
+      "@modules/*": [
+        "modules/*"
+      ],
+      "@supabase/*": [
+        "supabase/*"
+      ],
+      "@prisma/*": [
+        "../generated/prisma/*"
+      ]
     },
     "incremental": true,
     "skipLibCheck": true,

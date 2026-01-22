@@ -1,12 +1,20 @@
 import { Module } from '@nestjs/common';
-import { TankController } from '@presentation/controllers/tank.controller';
-import { TankService } from '@application/services/tank.service';
-import { TankRepository } from '@infrastructure/repositories/tank.repository';
+import { TankController } from './controllers/tank.controller';
+import { TankManager } from './managers/tank.manager';
+import { TankAccessor } from './accessors/tank.accessor';
+import { TANK_ACCESSOR } from './accessors/tank.accessor.interface';
 import { AuthModule } from '@modules/auth/auth.module';
 
 @Module({
-  imports: [AuthModule], // Import to access JwtAuthGuard
+  imports: [AuthModule],
   controllers: [TankController],
-  providers: [TankService, TankRepository],
+  providers: [
+    TankManager,
+    {
+      provide: TANK_ACCESSOR,
+      useClass: TankAccessor,
+    },
+  ],
+  exports: [TANK_ACCESSOR, TankManager],
 })
-export class TankModule {}
+export class TankModule { }

@@ -1,12 +1,20 @@
 import { Module } from '@nestjs/common';
-import { LivestockController } from '@presentation/controllers/livestock.controller';
-import { LivestockService } from '@application/services/livestock.service';
-import { LivestockRepository } from '@infrastructure/repositories/livestock.repository';
-import { PrismaService } from '@infrastructure/database/prisma.service';
+import { LivestockController } from './controllers/livestock.controller';
+import { LivestockManager } from './managers/livestock.manager';
+import { LivestockAccessor } from './accessors/livestock.accessor';
+import { LIVESTOCK_ACCESSOR } from './accessors/livestock.accessor.interface';
+import { AuthModule } from '@modules/auth/auth.module';
 
 @Module({
+    imports: [AuthModule],
     controllers: [LivestockController],
-    providers: [LivestockService, LivestockRepository, PrismaService],
-    exports: [LivestockService],
+    providers: [
+        LivestockManager,
+        {
+            provide: LIVESTOCK_ACCESSOR,
+            useClass: LivestockAccessor,
+        },
+    ],
+    exports: [LIVESTOCK_ACCESSOR, LivestockManager],
 })
 export class LivestockModule { }

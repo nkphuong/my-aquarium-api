@@ -1,15 +1,19 @@
 import { Module } from '@nestjs/common';
-import { FishController } from '@presentation/controllers/fish.controller';
-import { FishService } from '@application/services/fish.service';
-import { FishRepository } from '@infrastructure/repositories/fish.repository';
+import { FishManager } from './managers/fish.manager';
+import { FishAccessor } from './accessors/fish.accessor';
+import { FISH_ACCESSOR } from './accessors/fish.accessor.interface';
 import { AuthModule } from '@modules/auth/auth.module';
 
 @Module({
-  imports: [AuthModule], // Import to access JwtAuthGuard
-  controllers: [FishController],
+  imports: [AuthModule],
+  controllers: [],
   providers: [
-    FishService,
-    FishRepository,
+    FishManager,
+    {
+      provide: FISH_ACCESSOR,
+      useClass: FishAccessor,
+    },
   ],
+  exports: [FISH_ACCESSOR, FishManager],
 })
-export class FishModule {}
+export class FishModule { }

@@ -18,7 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"
+    "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts",
+    "generate:entities": "ts-node scripts/generate-entities.ts"
   },
   "prisma": {
     "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"
@@ -28,6 +29,7 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
+    "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/adapter-pg": "^7.0.1",
@@ -41,6 +43,7 @@
     "passport-jwt": "^4.0.1",
     "pg": "^8.16.3",
     "prisma-extension-pagination": "^0.7.6",
+    "radash": "^12.1.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -89,6 +92,8 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
+      "^@core/(.*)$": "<rootDir>/core/$1",
+      "^@engines/(.*)$": "<rootDir>/engines/$1",
       "^@domain/(.*)$": "<rootDir>/domain/$1",
       "^@application/(.*)$": "<rootDir>/application/$1",
       "^@infrastructure/(.*)$": "<rootDir>/infrastructure/$1",

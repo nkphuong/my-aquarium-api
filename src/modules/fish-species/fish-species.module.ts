@@ -1,20 +1,20 @@
 import { Module } from '@nestjs/common';
-import { FishSpeciesController } from '@presentation/controllers/fish-species.controller';
-import { FishSpeciesService } from '@application/services/fish-species.service';
-import { FishSyncService } from '@application/services/fish-sync.service';
-import { FishSpeciesRepository } from '@infrastructure/repositories/fish-species.repository';
-import { FishBaseService } from '@infrastructure/external/fishbase.service';
-import { PrismaService } from '@infrastructure/database/prisma.service';
+import { FishSpeciesController } from './controllers/fish-species.controller';
+import { FishSpeciesManager } from './managers/fish-species.manager';
+import { FishSpeciesAccessor } from './accessors/fish-species.accessor';
+import { FISH_SPECIES_ACCESSOR } from './accessors/fish-species.accessor.interface';
+import { AuthModule } from '@modules/auth/auth.module';
 
 @Module({
+  imports: [AuthModule],
   controllers: [FishSpeciesController],
   providers: [
-    FishSpeciesService,
-    FishSyncService,
-    FishSpeciesRepository,
-    FishBaseService,
-    PrismaService
+    FishSpeciesManager,
+    {
+      provide: FISH_SPECIES_ACCESSOR,
+      useClass: FishSpeciesAccessor,
+    },
   ],
-  exports: [FishSpeciesService],
+  exports: [FISH_SPECIES_ACCESSOR, FishSpeciesManager],
 })
 export class FishSpeciesModule { }
