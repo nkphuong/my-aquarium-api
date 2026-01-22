@@ -17,12 +17,10 @@ export interface EntityClass<T extends BaseEntity> {
  */
 @Injectable()
 export abstract class BaseAccessor<T extends BaseEntity> {
-    constructor(protected readonly prisma: PrismaService) { }
-
-    /**
-     * Entity class for auto-resolving delegate - override in child
-     */
-    protected abstract readonly entityClass: EntityClass<T>;
+    constructor(
+        protected readonly prisma: PrismaService,
+        protected readonly entityClass: EntityClass<T>,
+    ) { }
 
 
     /**
@@ -30,11 +28,24 @@ export abstract class BaseAccessor<T extends BaseEntity> {
      * Livestock → prisma.livestock
      * WaterParameter → prisma.waterParameter (handles multi-word)
      */
+    /**
+     * Get the model name from the Accessor class name.
+     * FishAccessor -> fish
+     * WaterParameterAccessor -> waterParameter
+     * 
+     * Can be overridden by child classes if naming convention doesn't match.
+     */
+    protected get modelName(): string {
+        const className = this.constructor.name;
+        // Strip 'Accessor' suffix and camelCase the result
+        return camel(className.replace(/Accessor$/, ''));
+    }
+
+    /**
+     * Auto-resolve Prisma delegate from model name
+     */
     protected get delegate(): any {
-        const className = this.entityClass.name;
-        // Convert PascalCase to camelCase: Livestock → livestock, WaterParameter → waterParameter
-        const delegateName = camel(className);
-        return (this.prisma as any)[delegateName];
+        return (this.prisma as any)[this.modelName];
     }
 
     /**
@@ -45,10 +56,27 @@ export abstract class BaseAccessor<T extends BaseEntity> {
     }
 
     async findById(id: number): Promise<T | null> {
-        const data = await this.delegate.findUnique({
-            where: { id: this.toDbId(id) },
-        });
+        return this.queryOne(
+            this.delegate.findUnique({
+                where: { id: this.toDbId(id) },
+            })
+        );
+    }
+
+    /**
+     * Execute a Prisma query and hydrate the result into a single Entity
+     */
+    protected async queryOne(query: Promise<any>): Promise<T | null> {
+        const data = await query;
         return data ? this.entityClass.fromDatabase(data) : null;
+    }
+
+    /**
+     * Execute a Prisma query and hydrate the results into an array of Entities
+     */
+    protected async queryMany(query: Promise<any[]>): Promise<T[]> {
+        const data = await query;
+        return data.map((item) => this.entityClass.fromDatabase(item));
     }
 
     async save(entity: T): Promise<T> {

@@ -1,16 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@core/database/prisma.service';
-import { BaseAccessor } from '@core/accessors/base.accessor';
+import { Accessor } from '@core/mixins/accessor.mixin';
 import { Fish } from '../entities/fish.entity';
 import { IFishAccessor } from './fish.accessor.interface';
 
 @Injectable()
-export class FishAccessor extends BaseAccessor<Fish> implements IFishAccessor {
-    protected readonly entityClass = Fish;
-
-    constructor(prisma: PrismaService) {
-        super(prisma);
-    }
+export class FishAccessor extends Accessor(Fish) implements IFishAccessor {
 
     async findAll(): Promise<Fish[]> {
         const fishes = await this.delegate.findMany();

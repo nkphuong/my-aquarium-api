@@ -16,9 +16,8 @@ cp .env.example .env
 ```
 
 Update the following in `.env`:
-- `DATABASE_URL`: Your Supabase PostgreSQL connection string
-  - Go to Supabase Project → Settings → Database
-  - Connection string format: `postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres`
+- `DATABASE_URL`: Your PostgreSQL connection string
+  - Format: `postgresql://user:password@localhost:5432/db_name`
 - `PORT`: Application port (default: 3000)
 
 ### 3. Generate Prisma Client

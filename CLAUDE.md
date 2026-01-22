@@ -80,101 +80,19 @@ npx prisma db push
 
 ## Architecture
 
-This project implements **Clean Architecture** using **Domain-Driven Design (DDD)** principles. The architecture enforces separation of concerns and dependency inversion, making the codebase maintainable, testable, and independent of frameworks and external services.
-
-### Architectural Layers
-
-The application is organized into four main layers, with dependencies flowing **inward** (outer layers depend on inner layers, never the reverse):
-
-```
-Presentation Layer (Controllers, DTOs)
-         ↓
-Application Layer (Use Cases, DTOs)
-         ↓
-Domain Layer (Entities, Value Objects, Exceptions)
-         ↑
-Infrastructure Layer (Prisma, Repositories, External Services)
-```
-
-#### 1. Domain Layer (`src/domain/`)
-The **core** of the application, containing business logic and rules. This layer has **no dependencies** on other layers or external frameworks.
-
-- **`entities/`**: Rich domain entities with business logic
-  - `base.entity.ts`: Base class for all entities with id, timestamps
-  - `fish.entity.ts`: Example Fish aggregate with business methods
-  - `user.entity.ts`: User entity
-- **`value-objects/`**: Immutable objects representing domain concepts
-  - `base.value-object.ts`: Base class for value objects with equality comparison
-  - `email.value-object.ts`: Email value object with validation
-- **`exceptions/`**: Domain-specific exceptions
-  - `domain.exception.ts`: DomainException, EntityNotFoundException, ValidationException
-  - `auth.exception.ts`: Authentication and authorization exceptions
-
-#### 2. Application Layer (`src/application/`)
-Contains **use cases** (application business logic) that orchestrate domain entities and infrastructure services.
-
-- **`use-cases/`**: Application use cases implementing business workflows
-  - `base.use-case.ts`: UseCase interface defining execute contract
-  - `fish/create-fish.use-case.ts`: Example use case for creating fish
-  - `fish/get-all-fish.use-case.ts`: Example use case for retrieving all fish
-  - `auth/register.use-case.ts`: User registration use case
-  - `auth/login.use-case.ts`: User login use case
-  - `auth/validate-token.use-case.ts`: Token validation use case
-  - `auth/get-current-user.use-case.ts`: Get current user use case
-- **`dtos/`**: Data Transfer Objects for application layer
-  - `base.dto.ts`: Base DTO with common fields
-  - `fish.dto.ts`: Fish DTOs (FishDto, CreateFishDto, UpdateFishDto)
-  - `auth.dto.ts`: Auth DTOs (RegisterDto, LoginDto, AuthResponseDto, UserDto)
-
-#### 3. Infrastructure Layer (`src/infrastructure/`)
-Contains framework-specific implementations and external service integrations. Repositories and services are injected directly into use cases.
-
-- **`database/`**: Database connection and ORM setup
-  - `prisma.service.ts`: Prisma client service with lifecycle management
-  - `database.module.ts`: Global module exporting PrismaService
-- **`repositories/`**: Concrete repository implementations
-  - `base.repository.ts`: Base repository with Prisma dependency
-  - `fish.repository.ts`: Fish repository implementation using Prisma
-  - `user.repository.ts`: User repository implementation using Prisma
-- **`auth/`**: Authentication services
-  - `supabase-auth.service.ts`: Supabase authentication service
-  - `auth.types.ts`: Auth-related types (AuthResult, SupabaseUser)
-
-#### 4. Presentation Layer (`src/presentation/`)
-HTTP/REST API layer handling requests and responses. Maps between DTOs and HTTP formats.
-
-- **`controllers/`**: NestJS controllers handling HTTP endpoints
-  - `fish.controller.ts`: Fish REST API endpoints
-- **`dto/`**: HTTP-specific DTOs
-  - `response.dto.ts`: Standardized API response wrapper
-- **`presenters/`**: Transform domain entities to presentation DTOs
-  - `base.presenter.ts`: Base presenter interface
-
-#### Feature Modules (`src/modules/`)
-Feature modules wire together all layers using **dependency injection**:
-
-- **`fish/fish.module.ts`**: Fish feature module
-  - Registers controllers, use cases, and repositories
-  - Provides concrete implementations directly
-- **`auth/auth.module.ts`**: Auth feature module
-  - Registers auth controllers, use cases, repositories, and services
-  - Exports guards for use in other modules
+> **CRITICAL**: The detailed architecture documentation has been moved to **[ARCHITECTURE.md](./ARCHITECTURE.md)**.
+>
+> Please refer to that file for:
+> *   Hybrid Lowy + Laravel Architecture
+> *   Manager / Accessor / Engine Patterns
+> *   Cross-Module Interactions
 
 ### Project Layout
-- `src/`: Application source code (layered architecture)
-  - `domain/`: Domain layer (core business logic)
-  - `application/`: Application layer (use cases)
-  - `infrastructure/`: Infrastructure layer (Prisma, external services)
-  - `presentation/`: Presentation layer (controllers)
-  - `modules/`: Feature modules (DI wiring)
-  - `main.ts`: Application entry point
-  - `app.module.ts`: Root module importing all feature modules
-- `prisma/`: Prisma schema and migrations
-  - `schema.prisma`: Database schema definition
-  - `migrations/`: Database migration files
-- `generated/prisma/`: Generated Prisma client (git-ignored)
+- `src/`: Application source code
+  - `core/`: Shared components and Mixins
+  - `modules/`: Feature modules (Vertical Slices)
+- `prisma/`: Database schema
 - `test/`: E2E tests
-- `dist/`: Build output
 
 ### TypeScript Configuration
 - Target: ES2023
@@ -201,8 +119,8 @@ The project uses TypeScript ESLint with the following notable rules:
 
 ### Environment Variables
 Managed via `.env` file (not committed to git):
-- `DATABASE_URL`: PostgreSQL connection string for Supabase
-  - Format: `postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
+- `DATABASE_URL`: PostgreSQL connection string
+  - Format: `postgresql://user:password@localhost:5432/db_name`
 - `PORT`: Application port (default: 3000)
 
 See [.env.example](.env.example) for the template.
@@ -216,225 +134,16 @@ This project uses Prisma as the database ORM, which provides:
 
 The Prisma client is generated in `generated/prisma/` and accessed through `PrismaService`.
 
-## Adding New Features (Clean Architecture)
+## Adding New Features
 
-Follow these steps when implementing new features:
-
-### 1. Define Domain Model
-Start in the **Domain Layer**:
-
-```typescript
-// src/domain/entities/tank.entity.ts
-export class Tank extends BaseEntity {
-  constructor(
-    id: string,
-    private _name: string,
-    private _capacity: number,
-  ) {
-    super(id);
-  }
-
-  get name(): string { return this._name; }
-  get capacity(): number { return this._capacity; }
-
-  // Business logic methods
-  updateCapacity(newCapacity: number): void {
-    if (newCapacity <= 0) {
-      throw new ValidationException('Capacity must be positive');
-    }
-    this._capacity = newCapacity;
-    this.touch();
-  }
-}
-```
-
-### 2. Create Prisma Schema
-Update `prisma/schema.prisma`:
-
-```prisma
-model Tank {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  capacity  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("tanks")
-}
-```
-
-Then run:
-```bash
-npx prisma generate
-npx prisma migrate dev --name add_tank_table
-```
-
-### 3. Implement Repository
-In the **Infrastructure Layer**:
-
-```typescript
-// src/infrastructure/repositories/tank.repository.ts
-@Injectable()
-export class TankRepository {
-  constructor(private readonly prisma: PrismaService) {}
-
-  async findById(id: string): Promise<Tank | null> {
-    const tank = await this.prisma.tank.findUnique({ where: { id } });
-    return tank ? this.toDomain(tank) : null;
-  }
-
-  async findByName(name: string): Promise<Tank | null> {
-    const tank = await this.prisma.tank.findUnique({ where: { name } });
-    return tank ? this.toDomain(tank) : null;
-  }
-
-  async save(entity: Tank): Promise<Tank> {
-    const tank = await this.prisma.tank.create({
-      data: {
-        id: entity.id,
-        name: entity.name,
-        capacity: entity.capacity,
-      },
-    });
-    return this.toDomain(tank);
-  }
-
-  private toDomain(prismaTank: any): Tank {
-    return new Tank(
-      prismaTank.id,
-      prismaTank.name,
-      prismaTank.capacity,
-      prismaTank.createdAt,
-      prismaTank.updatedAt,
-    );
-  }
-}
-```
-
-### 4. Create Application DTOs
-In the **Application Layer**:
-
-```typescript
-// src/application/dtos/tank.dto.ts
-export class TankDto extends BaseDto {
-  name: string;
-  capacity: number;
-}
-
-export class CreateTankDto {
-  name: string;
-  capacity: number;
-}
-```
-
-### 5. Implement Use Cases
-In the **Application Layer**:
-
-```typescript
-// src/application/use-cases/tank/create-tank.use-case.ts
-import { Injectable } from '@nestjs/common';
-import { UseCase } from '@application/use-cases/base.use-case';
-import { CreateTankDto, TankDto } from '@application/dtos/tank.dto';
-import { TankRepository } from '@infrastructure/repositories/tank.repository';
-import { Tank } from '@domain/entities/tank.entity';
-import { randomUUID } from 'crypto';
-
-@Injectable()
-export class CreateTankUseCase implements UseCase<CreateTankDto, TankDto> {
-  constructor(
-    private readonly tankRepository: TankRepository,
-  ) {}
-
-  async execute(input: CreateTankDto): Promise<TankDto> {
-    const tank = new Tank(randomUUID(), input.name, input.capacity);
-    const savedTank = await this.tankRepository.save(tank);
-
-    return {
-      id: savedTank.id,
-      name: savedTank.name,
-      capacity: savedTank.capacity,
-      createdAt: savedTank.createdAt,
-      updatedAt: savedTank.updatedAt,
-    };
-  }
-}
-```
-
-### 6. Create Controller
-In the **Presentation Layer**:
-
-```typescript
-// src/presentation/controllers/tank.controller.ts
-@Controller('tanks')
-export class TankController {
-  constructor(private readonly createTankUseCase: CreateTankUseCase) {}
-
-  @Post()
-  async create(@Body() dto: CreateTankDto) {
-    const tank = await this.createTankUseCase.execute(dto);
-    return ResponseDto.success(tank, 'Tank created successfully');
-  }
-}
-```
-
-### 7. Wire with Dependency Injection
-Create a **Feature Module**:
-
-```typescript
-// src/modules/tank/tank.module.ts
-import { Module } from '@nestjs/common';
-import { TankController } from '@presentation/controllers/tank.controller';
-import { CreateTankUseCase } from '@application/use-cases/tank/create-tank.use-case';
-import { TankRepository } from '@infrastructure/repositories/tank.repository';
-
-@Module({
-  controllers: [TankController],
-  providers: [
-    CreateTankUseCase,
-    TankRepository,
-  ],
-})
-export class TankModule {}
-```
-
-### 8. Register in AppModule
-```typescript
-// src/app.module.ts
-@Module({
-  imports: [
-    // ... other imports
-    TankModule,
-  ],
-})
-export class AppModule {}
-```
-
-## Key Principles
-
-### Dependency Rule
-- **Domain layer** depends on nothing (no imports from other layers)
-- **Application layer** depends on domain and infrastructure (for concrete implementations)
-- **Infrastructure** depends on domain for entities and value objects
-- **Presentation** depends on application for use cases and DTOs
-- Use **dependency injection** to provide concrete implementations
-
-### Repository Pattern
-- Repositories live in the **infrastructure layer**
-- Use cases inject repositories directly (concrete classes)
-- Repositories handle data persistence and mapping to domain entities
-- Keep repository methods focused on data access
-
-### Use Cases
-- Each use case represents a single business operation
-- Use cases orchestrate domain entities and repositories
-- Keep use cases focused and testable
-- Inject concrete repositories and services directly
-
-### Entity Business Logic
-- Put business rules in domain entities
-- Entities should protect their invariants
-- Use methods to modify state, not direct property access
-- Keep entities independent of infrastructure concerns
+> **STOP**: Do NOT follow the "Use Case" / "Repository" pattern.
+>
+> 1.  Read **[ARCHITECTURE.md](./ARCHITECTURE.md)** to understand the **Manager / Accessor** flow.
+> 2.  **Define Entity** in `src/modules/<feature>/entities/` (Extend `Model`).
+> 3.  **Create/Update Request** in `src/modules/<feature>/requests/`.
+> 4.  **Create/Update Accessor** in `src/modules/<feature>/accessors/` (Extend `Accessor`).
+> 5.  **Create/Update Manager** in `src/modules/<feature>/managers/`.
+> 6.  **Wire it up** in `src/modules/<feature>/<feature>.module.ts`.
 
 ## Coding Conventions
 
@@ -442,110 +151,30 @@ export class AppModule {}
 
 | Type | Pattern | Example |
 |------|---------|---------|
-| Entity | `<Name>` | `Tank`, `Fish`, `User` |
-| DTO | `<Name>Dto`, `Create<Name>Dto`, `Update<Name>Dto` | `TankDto`, `CreateTankDto` |
-| Repository | `<Name>Repository` | `TankRepository` |
-| Service | `<Name>Service` | `TankService` |
+| Entity | `<Name>` | `Tank`, `Fish` |
+| Request | `<Name>Request` | `CreateTankRequest` |
+| Accessor | `<Name>Accessor` | `TankAccessor` |
+| Manager | `<Name>Manager` | `TankManager` |
+| Engine | `<Name>Engine` | `CompatibilityEngine` |
 | Controller | `<Name>Controller` | `TankController` |
-| Module | `<Name>Module` | `TankModule` |
 
 - Database fields: `snake_case`
-- TypeScript properties: `camelCase` (except when mapping directly from DB)
-- Files: `<name>.<type>.ts` (e.g., `tank.entity.ts`, `tank.service.ts`)
+- TypeScript properties: `camelCase` (Models auto-mapped)
 
 ### Entity Design
+- Extend `Model<PrismaType>()`.
+- Use `fill()` method for data population.
+- Contain logic methods (e.g., `assignToUser()`).
 
-- Rich domain entities with **private fields** and **public getters**
-- Use `update<Property>()` methods instead of direct setters
-- Entities must extend `BaseEntity` with `id`, `created_at`, `updated_at`
-- Add business logic validation in entity methods
-- Entity IDs use `number` (converted from BigInt in Prisma)
-
-```typescript
-export class Tank extends BaseEntity {
-  private _name: string;
-
-  get name(): string {
-    return this._name;
-  }
-
-  updateName(name: string): void {
-    this._name = name;
-    this.touch();
-  }
-}
-```
-
-### DTO Patterns
-
-- DTOs should have `fromEntity()` and `fromEntities()` static methods
-- Use `class-validator` decorators for input validation
-- Never expose domain entities directly to controllers
-- Pagination uses `PaginatedResult<T>` wrapper
-- Avoid duplicating DTOs across layers
-
-```typescript
-export class TankDto {
-  static fromEntity(entity: Tank): TankDto {
-    const dto = new TankDto();
-    dto.id = entity.id;
-    dto.name = entity.name;
-    return dto;
-  }
-
-  static fromEntities(entities: Tank[]): TankDto[] {
-    return entities.map(TankDto.fromEntity);
-  }
-}
-```
-
-### Repository Mapping
-
-- Each repository has a private `toDomain()` method to map Prisma model → Entity
-- Handle `BigInt` to `number` conversion in repositories
-- Use `prisma-extension-pagination` for pagination
-
-```typescript
-private toDomain(prismaTank: any): Tank {
-  return new Tank(
-    Number(prismaTank.id),
-    prismaTank.name,
-    // ... other fields
-  );
-}
-```
+### Manager Patterns
+- Inject Accessors via Interface tokens (e.g., `ITankAccessor`).
+- Return Entities directly.
+- Use `Engine` for complex logic.
 
 ### Controller Patterns
+- Use `Manager` to handle logic.
+- Wrap responses in standard format if needed (or rely on Interceptors).
 
-- Always wrap responses with `ResponseDto.success()` or `ResponseDto.error()`
-- Use `@UseGuards(JwtAuthGuard)` for protected routes
-- Use `@CurrentUser()` decorator to get authenticated user
-- Use `ParseIntPipe` and `DefaultValuePipe` for query parameters
-- Wrap logic in try-catch, return `ResponseDto.error()` on error
-
-```typescript
-@Controller('tank')
-@UseGuards(JwtAuthGuard)
-export class TankController {
-  @Get()
-  async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  ) {
-    try {
-      const tanks = await this.tankService.findAll(page);
-      return ResponseDto.success(tanks);
-    } catch (error) {
-      return ResponseDto.error(error.message);
-    }
-  }
-}
-```
-
-### Exception Handling
-
-- Use domain exceptions: `EntityNotFoundException`, `ValidationException`
-- Controllers should catch and wrap errors in `ResponseDto.error()`
-- Never expose internal error details to clients
 
 ### Testing Guidelines
 

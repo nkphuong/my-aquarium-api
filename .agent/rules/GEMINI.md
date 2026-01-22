@@ -2,9 +2,8 @@
 trigger: always_on
 ---
 
-# GEMINI.md - Maestro Configuration
+# GEMINI.md - Antigravity Kit
 
-> Maestro AI Development Orchestrator
 > This file defines how the AI behaves in this workspace.
 
 ---
@@ -36,7 +35,7 @@ Agent activated → Check frontmatter "skills:" field
 
 ---
 
-## �📥 REQUEST CLASSIFIER (STEP 2)
+## 📥 REQUEST CLASSIFIER (STEP 2)
 
 **Before ANY action, classify the request:**
 
@@ -144,8 +143,8 @@ When user's prompt is NOT in English:
 
 | Task Stage | Command | Purpose |
 |------------|---------|---------|
-| **Manual Audit** | `python scripts/checklist.py .` | Priority-based project audit |
-| **Pre-Deploy** | `python scripts/checklist.py . --url <URL>` | Full Suite + Performance + E2E |
+| **Manual Audit** | `python .agent/scripts/checklist.py .` | Priority-based project audit |
+| **Pre-Deploy** | `python .agent/scripts/checklist.py . --url <URL>` | Full Suite + Performance + E2E |
 
 **Priority Execution Order:**
 1. **Security** → 2. **Lint** → 3. **Schema** → 4. **Tests** → 5. **UX** → 6. **Seo** → 7. **Lighthouse/E2E**
@@ -241,7 +240,8 @@ When user's prompt is NOT in English:
 
 | Script | Path |
 |--------|------|
-| Full verify | `scripts/verify_all.py` |
+| Full verify | `.agent/scripts/verify_all.py` |
+| Checklist | `.agent/scripts/checklist.py` |
 | Security scan | `.agent/skills/vulnerability-scanner/scripts/security_scan.py` |
 | UX audit | `.agent/skills/frontend-design/scripts/ux_audit.py` |
 | Mobile audit | `.agent/skills/mobile-design/scripts/mobile_audit.py` |

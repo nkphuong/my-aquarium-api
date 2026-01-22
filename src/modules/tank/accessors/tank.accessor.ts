@@ -1,17 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@core/database/prisma.service';
-import { BaseAccessor } from '@core/accessors/base.accessor';
+import { Accessor } from '@core/mixins/accessor.mixin';
 import { Tank } from '../entities/tank.entity';
 import { ITankAccessor, PaginatedTanks } from './tank.accessor.interface';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class TankAccessor extends BaseAccessor<Tank> implements ITankAccessor {
-    protected readonly entityClass = Tank;
-
-    constructor(prisma: PrismaService) {
-        super(prisma);
-    }
+export class TankAccessor extends Accessor(Tank) implements ITankAccessor {
 
     async findAll(
         page: number = 1,
@@ -47,7 +41,6 @@ export class TankAccessor extends BaseAccessor<Tank> implements ITankAccessor {
             user_id: BigInt(userId),
             ...(includeArchived ? {} : { is_archived: false }),
         };
-        const tanks = await this.delegate.findMany({ where });
-        return tanks.map((t) => Tank.fromDatabase(t));
+        return this.queryMany(this.delegate.findMany({ where }));
     }
 }

@@ -22,8 +22,17 @@
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
 ## Description
-
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | **Start Here**. Explains the Hybrid Lowy + Laravel architecture, Managers, Accessors, and Engines. |
+| **[SETUP.md](./SETUP.md)** | Detailed installation, database setup, and troubleshooting guide. |
+| **[CLAUDE.md](./CLAUDE.md)** | Guidelines for AI assistants and coding standards. |
+
+> **Note**: This project follows a specific architecture different from standard NestJS. Please read `ARCHITECTURE.md` before contributing.
 
 ## Project setup
 

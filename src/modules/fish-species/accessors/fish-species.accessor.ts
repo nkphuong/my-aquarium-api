@@ -1,16 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@core/database/prisma.service';
-import { BaseAccessor } from '@core/accessors/base.accessor';
+import { Accessor } from '@core/mixins/accessor.mixin';
 import { FishSpecies } from '../entities/fish-species.entity';
 import { IFishSpeciesAccessor } from './fish-species.accessor.interface';
 
 @Injectable()
-export class FishSpeciesAccessor extends BaseAccessor<FishSpecies> implements IFishSpeciesAccessor {
-    protected readonly entityClass = FishSpecies;
-
-    constructor(prisma: PrismaService) {
-        super(prisma);
-    }
+export class FishSpeciesAccessor extends Accessor(FishSpecies) implements IFishSpeciesAccessor {
 
     // Override toDbId to return number for Int ID field (not BigInt)
     protected override toDbId(id: number): number {
