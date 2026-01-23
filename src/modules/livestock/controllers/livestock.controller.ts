@@ -15,32 +15,20 @@ export class LivestockController {
 
     @Post()
     async create(@Body() createLivestockDto: CreateLivestockRequest) {
-        try {
-            const item = await this.livestockManager.create(createLivestockDto);
-            return ResponseDto.success(new LivestockResource(item), 'Livestock added successfully');
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const item = await this.livestockManager.create(createLivestockDto);
+        return ResponseDto.success(new LivestockResource(item), 'Livestock added successfully');
     }
 
     @Get()
     async findByTank(@Query('tankId', ParseIntPipe) tankId: number) {
-        try {
-            const items = await this.livestockManager.findByTankId(tankId);
-            return ResponseDto.success(LivestockResource.collection(items));
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const items = await this.livestockManager.findByTankId(tankId);
+        return ResponseDto.success(LivestockResource.collection(items));
     }
 
     @Get(':id')
     async findById(@Param('id', ParseIntPipe) id: number) {
-        try {
-            const item = await this.livestockManager.findById(id);
-            return ResponseDto.success(new LivestockResource(item));
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const item = await this.livestockManager.findById(id);
+        return ResponseDto.success(new LivestockResource(item));
     }
 
     @Patch(':id')
@@ -48,21 +36,13 @@ export class LivestockController {
         @Param('id', ParseIntPipe) id: number,
         @Body() updateLivestockDto: UpdateLivestockRequest,
     ) {
-        try {
-            const item = await this.livestockManager.update(id, updateLivestockDto);
-            return ResponseDto.success(new LivestockResource(item), 'Livestock updated successfully');
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const item = await this.livestockManager.update(id, updateLivestockDto);
+        return ResponseDto.success(new LivestockResource(item), 'Livestock updated successfully');
     }
 
     @Delete(':id')
     async delete(@Param('id', ParseIntPipe) id: number) {
-        try {
-            await this.livestockManager.delete(id);
-            return ResponseDto.success(null, 'Livestock removed successfully');
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        await this.livestockManager.delete(id);
+        return ResponseDto.success(null, 'Livestock removed successfully');
     }
 }

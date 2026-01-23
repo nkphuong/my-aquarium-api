@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateWaterParameterRequest } from '../requests/water-parameter.request';
 import { WaterParameter } from '../entities/water-parameter.entity';
-import { EntityNotFoundException } from '@core/exceptions/domain.exception';
+import { WaterParameterNotFoundException } from '../exceptions';
 import type { IWaterParameterAccessor } from '../accessors/water-parameter.accessor.interface';
 import { WATER_PARAMETER_ACCESSOR } from '../accessors/water-parameter.accessor.interface';
 
@@ -41,7 +41,7 @@ export class WaterParameterManager {
     async findById(id: number): Promise<WaterParameter> {
         const item = await this.waterParameterAccessor.findById(id);
         if (!item) {
-            throw new EntityNotFoundException('WaterParameter', id);
+            throw new WaterParameterNotFoundException(id);
         }
         return item;
     }
@@ -49,7 +49,7 @@ export class WaterParameterManager {
     async delete(id: number): Promise<void> {
         const item = await this.waterParameterAccessor.findById(id);
         if (!item) {
-            throw new EntityNotFoundException('WaterParameter', id);
+            throw new WaterParameterNotFoundException(id);
         }
         await this.waterParameterAccessor.delete(id);
     }

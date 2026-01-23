@@ -11,21 +11,13 @@ export class FishSpeciesController {
 
     @Get()
     async findAll(@Query('keyword') keyword?: string) {
-        try {
-            const items = await this.fishSpeciesManager.findAll(keyword);
-            return ResponseDto.success(FishSpeciesResource.collection(items));
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const items = await this.fishSpeciesManager.findAll(keyword);
+        return ResponseDto.success(FishSpeciesResource.collection(items));
     }
 
     @Get(':id')
     async findById(@Param('id', ParseIntPipe) id: number) {
-        try {
-            const item = await this.fishSpeciesManager.findById(id);
-            return ResponseDto.success(new FishSpeciesResource(item));
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const item = await this.fishSpeciesManager.findById(id);
+        return ResponseDto.success(new FishSpeciesResource(item));
     }
 }

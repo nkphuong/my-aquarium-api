@@ -13,68 +13,48 @@ export class AuthController {
 
     @Post('register')
     async register(@Body() registerDto: RegisterRequest) {
-        try {
-            const result = await this.authManager.register(registerDto);
-            return ResponseDto.success({
-                user: new UserResource(result.user),
-                accessToken: result.accessToken,
-                refreshToken: result.refreshToken,
-                expiresIn: result.expiresIn,
-            }, 'Registration successful');
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const result = await this.authManager.register(registerDto);
+        return ResponseDto.success({
+            user: new UserResource(result.user),
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+            expiresIn: result.expiresIn,
+        }, 'Registration successful');
     }
 
     @Post('login')
     async login(@Body() loginDto: LoginRequest) {
-        try {
-            const result = await this.authManager.login(loginDto);
-            return ResponseDto.success({
-                user: new UserResource(result.user),
-                accessToken: result.accessToken,
-                refreshToken: result.refreshToken,
-                expiresIn: result.expiresIn,
-            }, 'Login successful');
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const result = await this.authManager.login(loginDto);
+        return ResponseDto.success({
+            user: new UserResource(result.user),
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+            expiresIn: result.expiresIn,
+        }, 'Login successful');
     }
 
     @Post('refresh')
     async refreshTokens(@Body() refreshDto: RefreshTokenRequest) {
-        try {
-            const result = await this.authManager.refreshTokens(refreshDto);
-            return ResponseDto.success({
-                user: new UserResource(result.user),
-                accessToken: result.accessToken,
-                refreshToken: result.refreshToken,
-                expiresIn: result.expiresIn,
-            });
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const result = await this.authManager.refreshTokens(refreshDto);
+        return ResponseDto.success({
+            user: new UserResource(result.user),
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+            expiresIn: result.expiresIn,
+        });
     }
 
     @UseGuards(JwtAuthGuard)
     @Post('logout')
     async logout(@CurrentUser() user: User) {
-        try {
-            await this.authManager.logout(user.id!);
-            return ResponseDto.success(null, 'Logout successful');
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        await this.authManager.logout(user.id!);
+        return ResponseDto.success(null, 'Logout successful');
     }
 
     @UseGuards(JwtAuthGuard)
     @Get('me')
     async me(@CurrentUser() user: User) {
-        try {
-            const currentUser = await this.authManager.getCurrentUser(user.id!);
-            return ResponseDto.success(new UserResource(currentUser));
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const currentUser = await this.authManager.getCurrentUser(user.id!);
+        return ResponseDto.success(new UserResource(currentUser));
     }
 }

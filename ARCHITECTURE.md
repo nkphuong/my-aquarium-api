@@ -212,6 +212,113 @@ export class FishManager {
 }
 ```
 
+### 5.1 Shared Engine for Logic Reuse (Avoiding Duplication)
+
+**Problem**: Multiple Managers need the same business logic. Example:
+- `FishManager.addFishToTank()` → Check bioload → Save fish
+- `TankManager.createTankWithFish()` → Create tank → Check bioload → Save fish
+
+**❌ Anti-Pattern**: Manager calls Manager (violates architecture, creates circular dependencies).
+
+**✅ Solution**: Extract shared logic to an **Engine**. Both Managers inject the same Engine.
+
+```mermaid
+graph LR
+    subgraph Managers [Orchestrators - Process Volatility]
+        FM[FishManager]
+        TM[TankManager]
+    end
+    
+    subgraph Engines [Pure Logic - Logic Volatility]
+        BE[BioloadEngine]
+    end
+    
+    subgraph Accessors [Data Access - Data Volatility]
+        FA[FishAccessor]
+        TA[TankAccessor]
+    end
+    
+    FM --> BE
+    FM --> FA
+    TM --> BE
+    TM --> FA
+    TM --> TA
+```
+
+#### Example Implementation
+
+```typescript
+// Engine: Pure validation, NO I/O (no Accessor calls)
+@Injectable()
+export class BioloadEngine {
+    validateFishFit(fish: Fish, tank: Tank): void {
+        const availableBioload = tank.maxBioload - tank.currentBioload;
+        if (fish.bioload > availableBioload) {
+            throw new BioloadExceededException(fish.bioload, availableBioload);
+        }
+    }
+}
+```
+
+```typescript
+// FishManager: Standalone "add fish to existing tank" feature
+@Injectable()
+export class FishManager {
+    constructor(
+        @Inject(FISH_ACCESSOR) private fishAccessor: IFishAccessor,
+        @Inject(TANK_ACCESSOR) private tankAccessor: ITankAccessor,
+        private bioloadEngine: BioloadEngine  // Shared Engine
+    ) {}
+
+    async addFishToTank(userId: number, request: AddFishRequest): Promise<Fish> {
+        const tank = await this.tankAccessor.findByIdOrFail(request.tankId);
+        const fish = new Fish().fill(request).assignToUser(userId);
+        
+        this.bioloadEngine.validateFishFit(fish, tank);  // ← Shared logic
+        
+        return this.fishAccessor.save(fish);
+    }
+}
+```
+
+```typescript
+// TankManager: "Create tank AND add fish" feature (atomic transaction)
+@Injectable()
+export class TankManager {
+    constructor(
+        @Inject(TANK_ACCESSOR) private tankAccessor: ITankAccessor,
+        @Inject(FISH_ACCESSOR) private fishAccessor: IFishAccessor,
+        private bioloadEngine: BioloadEngine,  // SAME Engine
+        private transaction: TransactionHelper
+    ) {}
+
+    async createTankWithFish(userId: number, request: CreateTankWithFishRequest): Promise<{tank: Tank, fish: Fish}> {
+        return this.transaction.execute(async (tx) => {
+            // Step 1: Create tank
+            const tank = new Tank().fill(request).assignToUser(userId);
+            const savedTank = await this.tankAccessor.withTransaction(tx).save(tank);
+            
+            // Step 2: Validate fish fit (SAME Engine, no duplicate logic)
+            const fish = new Fish().fill(request.fish).assignToUser(userId);
+            this.bioloadEngine.validateFishFit(fish, savedTank);
+            
+            // Step 3: Save fish (atomic - rollback if fails)
+            const savedFish = await this.fishAccessor.withTransaction(tx).save(fish);
+            
+            return { tank: savedTank, fish: savedFish };
+        });
+    }
+}
+```
+
+#### Key Rules
+
+| Rule | Explanation |
+|------|-------------|
+| **Engine = Pure Logic** | No Accessor calls inside Engine. Only validation/calculation. |
+| **Manager = Orchestration** | Manager calls Engine for logic, then calls Accessor for persistence. |
+| **When Rule Changes** | Update Engine once → All Managers automatically use new logic. |
+
 ---
 
 ## 6. Event-Driven Side Effects (Hybrid Pattern)
@@ -281,3 +388,86 @@ export class TankCreatedListener {
     }
 }
 ```
+
+---
+
+## 7. Transaction Pattern (Radash-Powered)
+
+For atomic operations spanning multiple Accessors, use `TransactionHelper` with **radash** utilities for clean error handling.
+
+### Key Components
+
+| Component | Purpose | Radash Function |
+|-----------|---------|-----------------|
+| `TransactionHelper` | Wraps Prisma `$transaction` | `tryit`, `guard` |
+| `BaseAccessor.withTransaction()` | Creates transactional accessor copy | `clone` |
+
+### Usage Pattern
+
+```typescript
+// Manager orchestrates transaction
+import { TransactionHelper } from '@core/database/transaction.helper';
+
+@Injectable()
+export class PurchaseManager {
+    constructor(
+        @Inject(PURCHASE_ACCESSOR) private purchaseAccessor: IPurchaseAccessor,
+        @Inject(WALLET_ACCESSOR) private walletAccessor: IWalletAccessor,
+        private transaction: TransactionHelper,
+    ) {}
+
+    async executePurchase(userId: number, request: PurchaseRequest): Promise<Purchase> {
+        // All operations inside execute() are atomic
+        return this.transaction.execute(async (tx) => {
+            // Step 1: Create purchase
+            const purchase = new Purchase().fill(request);
+            const savedPurchase = await this.purchaseAccessor
+                .withTransaction(tx)
+                .save(purchase);
+
+            // Step 2: Update wallet (if this fails, purchase rollbacks)
+            const wallet = await this.walletAccessor
+                .withTransaction(tx)
+                .findByUserId(userId);
+            wallet.addGold(request.goldAmount);
+            await this.walletAccessor.withTransaction(tx).save(wallet);
+
+            return savedPurchase;
+        });
+    }
+}
+```
+
+### TransactionHelper Methods
+
+| Method | Behavior | Use Case |
+|--------|----------|----------|
+| `execute(callback)` | Throws `DomainException` on failure | Default - fail fast |
+| `executeOrNull(callback)` | Returns `null` on failure | Silent fail with fallback |
+| `executeOrDefault(default, callback)` | Returns default value on failure | Graceful degradation |
+
+### Radash Integration
+
+```typescript
+// TransactionHelper uses radash under the hood:
+import { tryit, guard } from 'radash';
+
+// execute() uses tryit for error-first handling
+const [err, result] = await tryit(prisma.$transaction)(callback);
+
+// executeOrNull() uses guard for silent failure
+const result = await guard(() => prisma.$transaction(callback));
+
+// BaseAccessor.withTransaction() uses clone
+import { clone } from 'radash';
+const transactionalAccessor = clone(this);
+```
+
+### When to Use Transactions
+
+| Scenario | Transaction? | Example |
+|----------|--------------|---------|
+| Single accessor operation | ❌ No | `tankAccessor.save(tank)` |
+| Multiple related creates | ✅ Yes | Tank + Fish + WaterParams |
+| Update with validation | ✅ Yes | Check balance → Deduct → Log |
+| Read-only operations | ❌ No | `findById`, `findAll` |

@@ -2,14 +2,16 @@ import { Injectable, Inject } from '@nestjs/common';
 import { CreateTankRequest, UpdateTankRequest } from '../requests/tank.request';
 import { PaginatedResult } from '@core/types/pagination';
 import { Tank } from '../entities/tank.entity';
-import { EntityNotFoundException } from '@core/exceptions/domain.exception';
+import { TankNotFoundException } from '../exceptions';
 import type { ITankAccessor } from '../accessors/tank.accessor.interface';
 import { TANK_ACCESSOR } from '../accessors/tank.accessor.interface';
+import { TransactionHelper } from '@core/database/transaction.helper';
 
 @Injectable()
 export class TankManager {
     constructor(
         @Inject(TANK_ACCESSOR) private readonly tankAccessor: ITankAccessor,
+        private readonly transaction: TransactionHelper,
     ) { }
 
     async create(dto: CreateTankRequest, userId: number): Promise<Tank> {
@@ -48,7 +50,7 @@ export class TankManager {
     async findById(id: number): Promise<Tank> {
         const tank = await this.tankAccessor.findById(id);
         if (!tank) {
-            throw new EntityNotFoundException('Tank', id);
+            throw new TankNotFoundException(id);
         }
         return tank;
     }
@@ -61,7 +63,7 @@ export class TankManager {
     async update(id: number, dto: UpdateTankRequest): Promise<Tank> {
         const tank = await this.tankAccessor.findById(id);
         if (!tank) {
-            throw new EntityNotFoundException('Tank', id);
+            throw new TankNotFoundException(id);
         }
 
         tank.fill({
@@ -86,7 +88,7 @@ export class TankManager {
     async archive(id: number): Promise<Tank> {
         const tank = await this.tankAccessor.findById(id);
         if (!tank) {
-            throw new EntityNotFoundException('Tank', id);
+            throw new TankNotFoundException(id);
         }
         tank.archive();
         const updated = await this.tankAccessor.update(id, tank);
@@ -96,7 +98,7 @@ export class TankManager {
     async unarchive(id: number): Promise<Tank> {
         const tank = await this.tankAccessor.findById(id);
         if (!tank) {
-            throw new EntityNotFoundException('Tank', id);
+            throw new TankNotFoundException(id);
         }
         tank.unarchive();
         const updated = await this.tankAccessor.update(id, tank);
@@ -106,7 +108,7 @@ export class TankManager {
     async delete(id: number): Promise<void> {
         const tank = await this.tankAccessor.findById(id);
         if (!tank) {
-            throw new EntityNotFoundException('Tank', id);
+            throw new TankNotFoundException(id);
         }
         await this.tankAccessor.delete(id);
     }
@@ -114,7 +116,7 @@ export class TankManager {
     async assignToUser(tankId: number, userId: number): Promise<Tank> {
         const tank = await this.tankAccessor.findById(tankId);
         if (!tank) {
-            throw new EntityNotFoundException('Tank', tankId);
+            throw new TankNotFoundException(tankId);
         }
 
         tank.assignToUser(userId);
@@ -125,7 +127,7 @@ export class TankManager {
     async removeFromUser(tankId: number): Promise<Tank> {
         const tank = await this.tankAccessor.findById(tankId);
         if (!tank) {
-            throw new EntityNotFoundException('Tank', tankId);
+            throw new TankNotFoundException(tankId);
         }
 
         tank.removeFromUser();

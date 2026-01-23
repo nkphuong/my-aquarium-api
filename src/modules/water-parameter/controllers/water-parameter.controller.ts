@@ -15,51 +15,31 @@ export class WaterParameterController {
 
     @Post()
     async create(@Body() createDto: CreateWaterParameterRequest) {
-        try {
-            const item = await this.waterParameterManager.create(createDto);
-            return ResponseDto.success(new WaterParameterResource(item), 'Water parameter recorded successfully');
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const item = await this.waterParameterManager.create(createDto);
+        return ResponseDto.success(new WaterParameterResource(item), 'Water parameter recorded successfully');
     }
 
     @Get()
     async findByTank(@Query('tankId', ParseIntPipe) tankId: number) {
-        try {
-            const items = await this.waterParameterManager.findByTankId(tankId);
-            return ResponseDto.success(WaterParameterResource.collection(items));
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const items = await this.waterParameterManager.findByTankId(tankId);
+        return ResponseDto.success(WaterParameterResource.collection(items));
     }
 
     @Get('latest')
     async findLatestByTank(@Query('tankId', ParseIntPipe) tankId: number) {
-        try {
-            const item = await this.waterParameterManager.findLatestByTankId(tankId);
-            return ResponseDto.success(item ? new WaterParameterResource(item) : null);
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const item = await this.waterParameterManager.findLatestByTankId(tankId);
+        return ResponseDto.success(item ? new WaterParameterResource(item) : null);
     }
 
     @Get(':id')
     async findById(@Param('id', ParseIntPipe) id: number) {
-        try {
-            const item = await this.waterParameterManager.findById(id);
-            return ResponseDto.success(new WaterParameterResource(item));
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const item = await this.waterParameterManager.findById(id);
+        return ResponseDto.success(new WaterParameterResource(item));
     }
 
     @Delete(':id')
     async delete(@Param('id', ParseIntPipe) id: number) {
-        try {
-            await this.waterParameterManager.delete(id);
-            return ResponseDto.success(null, 'Water parameter deleted successfully');
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        await this.waterParameterManager.delete(id);
+        return ResponseDto.success(null, 'Water parameter deleted successfully');
     }
 }

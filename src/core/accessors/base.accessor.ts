@@ -1,7 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { camel } from 'radash';
+import { camel, clone } from 'radash';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@core/database/prisma.service';
 import { BaseEntity } from '@core/entities/base.entity';
+import { EntityNotFoundException } from '@core/exceptions/domain.exception';
+
+/**
+ * Type alias for Prisma transaction client
+ * Exported for use in Managers and other layers
+ */
+export type TransactionClient = Prisma.TransactionClient;
 
 
 export interface EntityClass<T extends BaseEntity> {
@@ -17,10 +25,31 @@ export interface EntityClass<T extends BaseEntity> {
  */
 @Injectable()
 export abstract class BaseAccessor<T extends BaseEntity> {
+    /**
+     * Transaction client when operating within a transaction
+     * Set via withTransaction() method
+     */
+    protected transactionClient?: TransactionClient;
+
     constructor(
         protected readonly prisma: PrismaService,
         protected readonly entityClass: EntityClass<T>,
     ) { }
+
+    /**
+     * Create a transactional copy of this accessor
+     * Uses radash clone for clean object copying
+     * 
+     * @example
+     * await this.transaction.execute(async (tx) => {
+     *     await this.tankAccessor.withTransaction(tx).save(tank);
+     * });
+     */
+    withTransaction(tx: TransactionClient): this {
+        const transactionalAccessor = clone(this) as this;
+        transactionalAccessor.transactionClient = tx;
+        return transactionalAccessor;
+    }
 
 
     /**
@@ -43,9 +72,11 @@ export abstract class BaseAccessor<T extends BaseEntity> {
 
     /**
      * Auto-resolve Prisma delegate from model name
+     * Uses transactionClient when in transaction scope, otherwise prisma
      */
     protected get delegate(): any {
-        return (this.prisma as any)[this.modelName];
+        const client = this.transactionClient ?? this.prisma;
+        return (client as any)[this.modelName];
     }
 
     /**
@@ -61,6 +92,18 @@ export abstract class BaseAccessor<T extends BaseEntity> {
                 where: { id: this.toDbId(id) },
             })
         );
+    }
+
+    /**
+     * Find by ID or throw EntityNotFoundException
+     * Use this in Managers when entity must exist
+     */
+    async findByIdOrFail(id: number): Promise<T> {
+        const entity = await this.findById(id);
+        if (!entity) {
+            throw new EntityNotFoundException(this.entityClass.name, id);
+        }
+        return entity;
     }
 
     /**

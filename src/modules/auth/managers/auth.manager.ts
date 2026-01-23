@@ -1,9 +1,14 @@
-import { Injectable, Inject, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RegisterRequest, LoginRequest, RefreshTokenRequest } from '../requests/auth.request';
 import { User } from '../entities/user.entity';
-import { EntityNotFoundException } from '@core/exceptions/domain.exception';
+import {
+    UnauthorizedException,
+    ForbiddenException,
+    UserAlreadyExistsException,
+    UserNotFoundException,
+} from '../exceptions';
 import type { IUserAccessor } from '../accessors/user.accessor.interface';
 import { USER_ACCESSOR } from '../accessors/user.accessor.interface';
 
@@ -112,7 +117,7 @@ export class AuthManager {
     async getCurrentUser(userId: number): Promise<User> {
         const user = await this.userAccessor.findById(userId);
         if (!user) {
-            throw new EntityNotFoundException('User', userId);
+            throw new UserNotFoundException(userId);
         }
         return user;
     }

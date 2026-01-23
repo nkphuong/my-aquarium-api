@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Fish } from '../entities/fish.entity';
-import { EntityNotFoundException } from '@core/exceptions/domain.exception';
+import { FishNotFoundException } from '../exceptions';
 import type { IFishAccessor } from '../accessors/fish.accessor.interface';
 import { FISH_ACCESSOR } from '../accessors/fish.accessor.interface';
 
@@ -29,7 +29,7 @@ export class FishManager {
     async findById(id: number): Promise<Fish> {
         const fish = await this.fishAccessor.findById(id);
         if (!fish) {
-            throw new EntityNotFoundException('Fish', id);
+            throw new FishNotFoundException(id);
         }
         return fish;
     }
@@ -41,7 +41,7 @@ export class FishManager {
     async assignToTank(fishId: number, tankId: number): Promise<Fish> {
         const fish = await this.fishAccessor.findById(fishId);
         if (!fish) {
-            throw new EntityNotFoundException('Fish', fishId);
+            throw new FishNotFoundException(fishId);
         }
         fish.assignToTank(tankId);
         return this.fishAccessor.save(fish);
@@ -50,7 +50,7 @@ export class FishManager {
     async delete(id: number): Promise<void> {
         const fish = await this.fishAccessor.findById(id);
         if (!fish) {
-            throw new EntityNotFoundException('Fish', id);
+            throw new FishNotFoundException(id);
         }
         await this.fishAccessor.delete(id);
     }

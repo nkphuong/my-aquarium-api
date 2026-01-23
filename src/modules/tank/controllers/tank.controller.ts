@@ -18,44 +18,28 @@ export class TankController {
         @Body() createTankDto: CreateTankRequest,
         @CurrentUser() user: User,
     ) {
-        try {
-            const tank = await this.tankManager.create(createTankDto, user.id!);
-            return ResponseDto.success(new TankResource(tank), 'Tank created successfully');
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const tank = await this.tankManager.create(createTankDto, user.id!);
+        return ResponseDto.success(new TankResource(tank), 'Tank created successfully');
     }
 
     @Get()
     async findAll(@CurrentUser() user: User) {
-        try {
-            const tanks = await this.tankManager.findAll(1, 10);
-            const resourceData = TankResource.collection(tanks.items);
-            const paginatedResource = PaginatedResult.create(resourceData, tanks.meta);
-            return ResponseDto.success(paginatedResource);
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const tanks = await this.tankManager.findAll(1, 10);
+        const resourceData = TankResource.collection(tanks.items);
+        const paginatedResource = PaginatedResult.create(resourceData, tanks.meta);
+        return ResponseDto.success(paginatedResource);
     }
 
     @Get('my-tanks')
     async findMyTanks(@CurrentUser() user: User) {
-        try {
-            const tanks = await this.tankManager.findByUserId(user.id!);
-            return ResponseDto.success(TankResource.collection(tanks));
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const tanks = await this.tankManager.findByUserId(user.id!);
+        return ResponseDto.success(TankResource.collection(tanks));
     }
 
     @Get(':id')
     async findById(@Param('id') id: number) {
-        try {
-            const tank = await this.tankManager.findById(id);
-            return ResponseDto.success(new TankResource(tank));
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const tank = await this.tankManager.findById(id);
+        return ResponseDto.success(new TankResource(tank));
     }
 
     @Patch(':id')
@@ -63,21 +47,13 @@ export class TankController {
         @Param('id') id: number,
         @Body() updateTankDto: UpdateTankRequest,
     ) {
-        try {
-            const tank = await this.tankManager.update(id, updateTankDto);
-            return ResponseDto.success(new TankResource(tank), 'Tank updated successfully');
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        const tank = await this.tankManager.update(id, updateTankDto);
+        return ResponseDto.success(new TankResource(tank), 'Tank updated successfully');
     }
 
     @Delete(':id')
     async delete(@Param('id') id: number) {
-        try {
-            await this.tankManager.delete(id);
-            return ResponseDto.success(null, 'Tank deleted successfully');
-        } catch (error) {
-            return ResponseDto.error(error.message);
-        }
+        await this.tankManager.delete(id);
+        return ResponseDto.success(null, 'Tank deleted successfully');
     }
 }

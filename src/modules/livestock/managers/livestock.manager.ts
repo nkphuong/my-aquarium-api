@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateLivestockRequest, UpdateLivestockRequest } from '../requests/livestock.request';
 import { Livestock } from '../entities/livestock.entity';
-import { EntityNotFoundException } from '@core/exceptions/domain.exception';
+import { LivestockNotFoundException } from '../exceptions';
 import type { ILivestockAccessor } from '../accessors/livestock.accessor.interface';
 import { LIVESTOCK_ACCESSOR } from '../accessors/livestock.accessor.interface';
 import { LivestockStatus } from '@modules/livestock/enums/livestock.enum';
@@ -38,7 +38,7 @@ export class LivestockManager {
     async findById(id: number): Promise<Livestock> {
         const item = await this.livestockAccessor.findById(id);
         if (!item) {
-            throw new EntityNotFoundException('Livestock', id);
+            throw new LivestockNotFoundException(id);
         }
         return item;
     }
@@ -46,7 +46,7 @@ export class LivestockManager {
     async update(id: number, dto: UpdateLivestockRequest): Promise<Livestock> {
         const item = await this.livestockAccessor.findById(id);
         if (!item) {
-            throw new EntityNotFoundException('Livestock', id);
+            throw new LivestockNotFoundException(id);
         }
 
         item.fill({
@@ -65,7 +65,7 @@ export class LivestockManager {
     async delete(id: number): Promise<void> {
         const item = await this.livestockAccessor.findById(id);
         if (!item) {
-            throw new EntityNotFoundException('Livestock', id);
+            throw new LivestockNotFoundException(id);
         }
         await this.livestockAccessor.delete(id);
     }
