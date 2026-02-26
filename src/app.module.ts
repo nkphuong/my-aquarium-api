@@ -1,43 +1,56 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { DatabaseModule } from '@core/database/database.module';
-import { FishModule } from '@modules/fish/fish.module';
-import { AuthModule } from '@modules/auth/auth.module';
-import { TankModule } from '@modules/tank/tank.module';
-import { FishSpeciesModule } from '@modules/fish-species/fish-species.module';
-import { LivestockModule } from '@modules/livestock/livestock.module';
-import { WaterParameterModule } from '@modules/water-parameter/water-parameter.module';
-import { DomainExceptionFilter, AllExceptionsFilter } from '@core/filters/domain-exception.filter';
+import { APP_FILTER } from '@nestjs/core';
+import { AllExceptionsFilter } from './core/filters/domain-exception.filter';
+import { ConfigModule } from '@nestjs/config';
+
+import { EnginesModule } from './engines/engines.module';
+
+// Data Subsystems
+import { LivestockAccessorModule } from './accessors/livestock/livestock.accessor.module';
+import { AquariumAccessorModule } from './accessors/aquarium/aquarium.accessor.module';
+import { UserAccessorModule } from './accessors/user/user.accessor.module';
+import { MediaAccessorModule } from './accessors/media/media.accessor.module';
+
+// Application Workflows
+import { AuthManagerModule } from './managers/auth/auth.manager.module';
+import { AquariumManagerModule } from './managers/aquarium/aquarium.manager.module';
+import { InventoryManagerModule } from './managers/inventory/inventory.manager.module';
+import { WaterLabManagerModule } from './managers/water-lab/water-lab.manager.module';
+import { MediaManagerModule } from './managers/media/media.manager.module';
+
+import { DatabaseModule } from './core/database/database.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env.development.local', '.env.development', '.env'],
     }),
     DatabaseModule,
-    FishModule,
-    AuthModule,
-    TankModule,
-    FishSpeciesModule,
-    LivestockModule,
-    WaterParameterModule,
+    EnginesModule,
+
+    // Data Subsystems
+    LivestockAccessorModule,
+    AquariumAccessorModule,
+    UserAccessorModule,
+    MediaAccessorModule,
+
+    // Workflow Applications
+    AuthManagerModule,
+    AquariumManagerModule,
+    InventoryManagerModule,
+    WaterLabManagerModule,
+    MediaManagerModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    // Global exception filters (order matters: most specific first)
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
     },
-    {
-      provide: APP_FILTER,
-      useClass: DomainExceptionFilter,
-    },
   ],
 })
-export class AppModule { }
-
+export class AppModule {}

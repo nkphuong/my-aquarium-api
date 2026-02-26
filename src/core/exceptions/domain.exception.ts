@@ -71,9 +71,7 @@ export class TransactionException extends DomainException {
   readonly code = 'TRANSACTION_FAILED';
   readonly httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
-  constructor(
-    public readonly originalError: string,
-  ) {
+  constructor(public readonly originalError: string) {
     super(`Transaction failed: ${originalError}`);
   }
 

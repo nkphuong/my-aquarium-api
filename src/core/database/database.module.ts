@@ -1,10 +1,9 @@
 import { Global, Module } from '@nestjs/common';
-import { PrismaService } from './prisma.service';
-import { TransactionHelper } from './transaction.helper';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 
 @Global()
 @Module({
-  providers: [PrismaService, TransactionHelper],
-  exports: [PrismaService, TransactionHelper],
+  imports: [MikroOrmModule.forRoot()],
+  providers: [],
 })
-export class DatabaseModule { }
+export class DatabaseModule {}

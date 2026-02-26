@@ -25,15 +25,28 @@ src/
 │   ├── entities/          # Base Entity definitions
 │   └── mixins/            # Core Mixin factories (Model, Accessor)
 │
-├── modules/               # Feature Modules
-│   ├── fish-care/
+├── engines/               # Pure Business Logic (No I/O)
+│   ├── bioload.engine.ts
+│   ├── compatibility.engine.ts
+│   ├── water-quality.engine.ts
+│   └── engines.module.ts  # @Global()
+│
+├── application/           # Managers (Orchestration)
+│   └── aquarium/          # Main Domain Manager
+│       ├── aquarium-application.manager.ts
+│       └── aquarium-application.module.ts
+│
+├── modules/               # Feature Modules (Data + Entities ONLY)
+│   ├── fish/
 │   │   ├── accessors/     # Data Access Layer
-│   │   ├── engines/       # Business Logic Layer (Complex Rules) <-- NEW
-│   │   ├── managers/      # Process/Workflow Layer
-│   │   ├── entities/      # Domain Layer (Rich Models)
-│   │   ├── requests/      # Input Validation
-│   │   └── fish-care.module.ts
+│   │   ├── entities/      # Domain Layer
+│   │   └── fish.module.ts # Exports Accessor
+│   ├── tank/
+│   └── ...
 ```
+
+> **Note**: Feature modules do NOT have Managers. All orchestration logic is centralized in `src/application/` Managers, which use **Engines** for logic and **Accessors** for data.
+
 
 ---
 
@@ -70,10 +83,33 @@ export class CompatibilityEngine {
 ```
 
 ### D. Managers (Process/Workflow)
-**Role**: Encapsulate volatile **Use Cases / Workflow**.
-**Pattern**: The entry point for features.
-- **Responsibility**: Orchestration. "First do A, then check B (Engine), then save C (Accessor)".
-- **Rule**: Managers utilize Engines for logic and Accessors for data.
+**Role**: Encapsulate **process volatility** in the sequence and orchestration of workflows. Managers are high-level entry points responsible for coordinating other components (Engines and Accessors) to satisfy use cases, embodying the "use cases are Managers" principle from "Righting Software".
+
+**Cardinality**: To prevent falling back into functional decomposition, the number of Managers is severely limited:
+*   **System-wide**: Strive for **no more than 3-5 Managers** across the entire application without subsystems.
+*   **Per Subsystem**: Limit to **three Managers** within a specific subsystem.
+*   If a system has eight or more Managers, it likely indicates a failure in volatility-based decomposition.
+
+**Expendability**: A well-designed Manager should be "almost expendable." Since the bulk of the effort is in the underlying Engines and Accessors, a change in workflow should only require rewriting the orchestration logic in the Manager.
+
+**Example: AquariumApplicationManager**
+
+The `AquariumApplicationManager` ([src/application/aquarium/aquarium-application.manager.ts](file:///home/phuong/Work/Aquarium/my-aquarium-api/src/application/aquarium/aquarium-application.manager.ts)) serves as a primary Manager for the aquarium domain. It orchestrates various operations related to tanks, fish, water parameters, etc., by directly utilizing Accessors for data persistence and injecting Engines for complex business rules. It represents a high-level entry point for managing the core aquarium functionality.
+
+### C. Engines (Business Logic)
+**Role**: Encapsulate **business rule volatility**. Engines contain stable, complex business rules and algorithms that are less likely to change frequently.
+
+**Pattern**: Pure(ish) logic classes.
+- **Responsibility**: "How to calculate X", "Is Y allowed", "Algorithm Z".
+- **Rule**: Engines do NOT call other Engines (usually). Engines do NOT handle HTTP/Requests. They remain independent of data access, operating on data provided to them.
+
+### B. Accessors (Data Access)
+**Role**: Encapsulate **data volatility**. Accessors abstract the underlying data storage mechanism. If the database changes, only the Accessors are affected.
+
+**Pattern**: Extends `Accessor(Entity)`.
+- Replaces "Repositories".
+- **Rule**: Managers/Engines must NEVER access Prisma directly. They must use Accessors.
+
 
 ```typescript
 // src/modules/fish/managers/fish.manager.ts
