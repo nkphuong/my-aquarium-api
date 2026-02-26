@@ -3,7 +3,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import {
   CreateTankRequest,
   UpdateTankRequest,
-} from '../../../accessors/aquarium/requests/tank.request';
+} from '@managers/aquarium/requests/tank.request';
 import { Tank } from '@accessors/aquarium/entities/tank.entity';
 import { Fish } from '@accessors/livestock/entities/fish.entity';
 import { PaginatedResult } from '@core/types/pagination';
@@ -55,7 +55,7 @@ export class AquariumManager {
     // Engines - Pure Business Logic
     private readonly bioloadEngine: BioloadEngine,
     private readonly compatibilityEngine: CompatibilityEngine,
-  ) {}
+  ) { }
 
   async createTank(dto: CreateTankRequest, userId: number): Promise<Tank> {
     const tank = new Tank();

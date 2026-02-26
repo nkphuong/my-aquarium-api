@@ -22,6 +22,13 @@
     "mikro:migration:up": "npx mikro-orm migration:up",
     "mikro:migration:down": "npx mikro-orm migration:down"
   },
+  "mikro-orm": {
+    "useTsNode": true,
+    "configPaths": [
+      "./src/mikro-orm.config.ts",
+      "./dist/src/mikro-orm.config.js"
+    ]
+  },
   "dependencies": {
     "@mikro-orm/cli": "^6.6.6",
     "@mikro-orm/core": "^6.6.6",
