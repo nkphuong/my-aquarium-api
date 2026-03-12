@@ -5,7 +5,7 @@ import {
   FilterQuery,
   wrap,
 } from '@mikro-orm/core';
-import { BaseEntity } from '@core/entities/base.entity';
+import { BaseEntity } from '@entities/base.entity';
 import { EntityNotFoundException } from '@core/exceptions/domain.exception';
 
 export interface EntityClass<T extends BaseEntity> {

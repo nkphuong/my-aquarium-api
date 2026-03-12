@@ -1,6 +1,6 @@
 import { WaterQualityEngine } from '../water-quality.engine';
-import { WaterParameter } from '@accessors/aquarium/entities/water-parameter.entity';
-import { FishSpecies } from '@accessors/livestock/entities/fish-species.entity';
+import { WaterParameter } from '@entities/water-parameter.entity';
+import { FishSpecies } from '@entities/fish-species.entity';
 
 describe('WaterQualityEngine', () => {
   let engine: WaterQualityEngine;

@@ -2,6 +2,8 @@ import { Module, Global } from '@nestjs/common';
 import { BioloadEngine } from './bioload.engine';
 import { CompatibilityEngine } from './compatibility.engine';
 import { WaterQualityEngine } from './water-quality.engine';
+import { SuggestionTankIdeaEngine } from './suggestion-tank-idea.engine';
+import { FishSpeciesEngine } from './fish-species.engine';
 
 /**
  * EnginesModule - Provides pure business logic engines
@@ -12,9 +14,16 @@ import { WaterQualityEngine } from './water-quality.engine';
  * - Engines encapsulate "logic volatility"
  * @Global() - Available app-wide without explicit imports
  */
+const Engines = [
+  BioloadEngine,
+  CompatibilityEngine,
+  WaterQualityEngine,
+  SuggestionTankIdeaEngine,
+  FishSpeciesEngine
+];
 @Global()
 @Module({
-  providers: [BioloadEngine, CompatibilityEngine, WaterQualityEngine],
-  exports: [BioloadEngine, CompatibilityEngine, WaterQualityEngine],
+  providers: Engines,
+  exports: Engines,
 })
-export class EnginesModule {}
+export class EnginesModule { }

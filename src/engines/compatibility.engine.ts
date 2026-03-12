@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { FishSpecies } from '@accessors/livestock/entities/fish-species.entity';
-import { Fish } from '@accessors/livestock/entities/fish.entity';
+import { FishSpecies } from '@entities/fish-species.entity';
+import { Fish } from '@entities/fish.entity';
 
 export interface CompatibilityResult {
   compatible: boolean;

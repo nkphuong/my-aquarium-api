@@ -18,6 +18,9 @@
       "@core/*": [
         "core/*"
       ],
+      "@shared/*": [
+        "shared/*"
+      ],
       "@engines/*": [
         "engines/*"
       ],
@@ -39,8 +42,8 @@
       "@supabase/*": [
         "supabase/*"
       ],
-      "@prisma/*": [
-        "../generated/prisma/*"
+      "@entities/*": [
+        "database/entities/*"
       ]
     },
     "incremental": true,

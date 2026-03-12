@@ -1,7 +1,7 @@
 import { BioloadEngine, BioloadValidation } from '../bioload.engine';
-import { Fish } from '@accessors/livestock/entities/fish.entity';
-import { FishSpecies } from '@accessors/livestock/entities/fish-species.entity';
-import { Tank } from '@accessors/aquarium/entities/tank.entity';
+import { Fish } from '@entities/fish.entity';
+import { FishSpecies } from '@entities/fish-species.entity';
+import { Tank } from '@entities/tank.entity';
 
 describe('BioloadEngine', () => {
   let engine: BioloadEngine;

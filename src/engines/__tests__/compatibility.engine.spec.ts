@@ -1,6 +1,6 @@
 import { CompatibilityEngine } from '../compatibility.engine';
-import { Fish } from '@accessors/livestock/entities/fish.entity';
-import { FishSpecies } from '@accessors/livestock/entities/fish-species.entity';
+import { Fish } from '@entities/fish.entity';
+import { FishSpecies } from '@entities/fish-species.entity';
 
 describe('CompatibilityEngine', () => {
   let engine: CompatibilityEngine;
