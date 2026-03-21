@@ -1,53 +1,48 @@
 import { Module } from '@nestjs/common';
-import { AccessorsModule } from '@accessors/accessors.module';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { APP_FILTER } from '@nestjs/core';
-import { AllExceptionsFilter, DomainExceptionFilter } from './core/filters/domain-exception.filter';
-import { ConfigModule } from '@nestjs/config';
-
-import { EnginesModule } from './engines/engines.module';
-
-// Data Subsystems
-
-// Application Workflows
-import { ManagerModule } from './managers/manager.module';
-import { AiModule } from './shared/ai/ai.module';
-
-import { DatabaseModule } from './core/database/database.module';
-import { EntitiesModule } from './database/entities/entities.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { BullModule } from '@nestjs/bullmq';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import mikroOrmConfig from './mikro-orm.config';
+import { HTTPModule } from '@entry-points/http/http.module';
+// import { EventEntryPointModule } from '@entry-points/events/event.module';
+// import { QUEUE_NAMES } from '@subsystems/notification/constants/queue.constants';
+import appConfig from './config/app.config';
+import databaseConfig from './config/database.config';
+import jwtConfig from './config/auth.config';
+import serviceConfig from './config/service.config';
+import mailConfig from './config/mail.config';
 
 @Module({
   imports: [
-    AiModule,
-    AccessorsModule,
+    EventEmitterModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.development.local',
-        '.env.development',
-        '.env'
-      ],
+      envFilePath: ['.env.local', '.env.development', '.env'],
+      load: [appConfig, databaseConfig, jwtConfig, serviceConfig, mailConfig],
     }),
-    DatabaseModule,
-    EntitiesModule,
-    EnginesModule,
 
-    // Workflow Applications
-    ManagerModule,
-  ],
-  controllers: [AppController],
-  providers: [
-    AppService,
-    {
-      // Catch-all filter for generic errors
-      provide: APP_FILTER,
-      useClass: AllExceptionsFilter,
-    },
-    {
-      // Specific filter for our custom domain exceptions
-      provide: APP_FILTER,
-      useClass: DomainExceptionFilter,
-    },
+    MikroOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        ...mikroOrmConfig,
+        clientUrl: configService.get<string>('database.url'),
+      }),
+    }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.get('service.redis.host'),
+          port: configService.get('service.redis.port'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
+    // BullModule.registerQueue({ name: QUEUE_NAMES.NOTIFICATION_EMAIL }),
+    HTTPModule,
+    // EventEntryPointModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

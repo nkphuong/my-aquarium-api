@@ -12,9 +12,9 @@
   },
   "moduleNameMapper": {
     "^@core/(.*)$": "<rootDir>/../src/core/$1",
-    "^@engines/(.*)$": "<rootDir>/../src/engines/$1",
-    "^@domain/(.*)$": "<rootDir>/../src/domain/$1",
-    "^@accessors/(.*)$": "<rootDir>/../src/accessors/$1",
-    "^@managers/(.*)$": "<rootDir>/../src/managers/$1"
+    "^@subsystems/(.*)$": "<rootDir>/../src/subsystems/$1",
+    "^@utilities/(.*)$": "<rootDir>/../src/utilities/$1",
+    "^@entry-points/(.*)$": "<rootDir>/../src/entry-points/$1",
+    "^@entities/(.*)$": "<rootDir>/../src/subsystems/aquarium/entities/$1"
   }
 }

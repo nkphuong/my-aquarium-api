@@ -4,12 +4,12 @@ import { AI_CLIENT_UTILITY_TOKEN } from './interfaces/ai-client.utility.interfac
 
 @Global()
 @Module({
-    providers: [
-        {
-            provide: AI_CLIENT_UTILITY_TOKEN,
-            useClass: AiClientUtility,
-        },
-    ],
-    exports: [AI_CLIENT_UTILITY_TOKEN],
+  providers: [
+    {
+      provide: AI_CLIENT_UTILITY_TOKEN,
+      useClass: AiClientUtility,
+    },
+  ],
+  exports: [AI_CLIENT_UTILITY_TOKEN],
 })
-export class AiModule { }
+export class AiModule {}

@@ -9,8 +9,31 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: aqua_companion
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - aqua_postgres_data:/var/lib/postgresql/data
     restart: always
-
+  redis:
+    image: redis:7
+    container_name: aqua_companion_redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - aqua_redis_data:/data
+    restart: always
+  redis_commander:
+    container_name: aqua_companion_redis_commander
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - '8089:8081'
+    depends_on:
+      - redis
+  mailhog:
+    image: mailhog/mailhog
+    container_name: aqua_companion_mailhog
+    ports:
+      - '8026:8025'
+      - '1027:1025'
 volumes:
-  postgres_data:
+  aqua_postgres_data:
+  aqua_redis_data:

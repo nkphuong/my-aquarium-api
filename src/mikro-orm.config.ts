@@ -1,21 +1,24 @@
-import { defineConfig } from '@mikro-orm/core';
-import { PostgreSqlDriver } from '@mikro-orm/postgresql';
+import { defineConfig } from '@mikro-orm/postgresql';
 import { TsMorphMetadataProvider } from '@mikro-orm/reflection';
 import { Migrator } from '@mikro-orm/migrations';
-import * as dotenv from 'dotenv';
+import { Logger } from '@nestjs/common';
+import 'dotenv/config';
 
-dotenv.config();
+const logger = new Logger('MikroORM');
 
 export default defineConfig({
-  driver: PostgreSqlDriver,
   clientUrl: process.env.DATABASE_URL,
   entities: ['dist/**/*.entity.js'],
   entitiesTs: ['src/**/*.entity.ts'],
   metadataProvider: TsMorphMetadataProvider,
-  debug: true,
   extensions: [Migrator],
+  logger: (msg: string) => logger.log(msg),
   migrations: {
-    path: 'dist/migrations',
-    pathTs: 'src/migrations',
+    path: 'dist/database/migrations',
+    pathTs: 'src/database/migrations',
+  },
+  seeder: {
+    path: 'dist/database/seeders',
+    pathTs: 'src/database/seeders',
   },
 });

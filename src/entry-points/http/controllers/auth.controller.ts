@@ -1,70 +1,58 @@
-import { Body, Controller, Post, Get, UseGuards } from '@nestjs/common';
-import { ResponseDto } from '@core/dto/response.dto';
-import { AuthManager } from '@managers/auth.manager';
-import {
-  RegisterRequest,
-  LoginRequest,
-  RefreshTokenRequest,
-} from '../requests/auth.request';
-import { JwtAuthGuard } from '@core/guards/jwt-auth.guard';
-import { CurrentUser } from '@core/decorators/current-user.decorator';
-import { User } from '@entities/user.entity';
-import { UserResource } from '../resources/user.resource';
+import { Body, Controller, Post, Get, UseGuards, Inject } from '@nestjs/common';
+
+import type { IAccountManager } from '@subsystems/membership/contracts/account.manager.interface';
+import type { ISessionManager } from '@subsystems/membership/contracts/session.manager.interface';
+
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { CurrentUser } from '../decorators/current-user.decorator';
+
+import { RegisterRequestDTO } from '@subsystems/membership/dtos/register.request.dto';
+import { LoginRequestDTO } from '@subsystems/membership/dtos/login.request.dto';
+import { RefreshTokenRequestDTO } from '@subsystems/membership/dtos/refresh-token.request.dto';
+import { LogoutRequestDTO } from '@subsystems/membership/dtos/logout.request.dto';
+import { AuthResponseDTO } from '@subsystems/membership/dtos/auth.response.dto';
+import { RegisterResponseDTO } from '@subsystems/membership/dtos/register.response.dto';
+import { UserProfileResponseDTO } from '@subsystems/membership/dtos/user-profile.response.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authManager: AuthManager) { }
+  constructor(
+    @Inject('IAccountManager')
+    private readonly accountManager: IAccountManager,
+    @Inject('ISessionManager')
+    private readonly sessionManager: ISessionManager,
+  ) {}
 
   @Post('register')
-  async register(@Body() registerDto: RegisterRequest) {
-    const result = await this.authManager.register(registerDto);
-    return ResponseDto.success(
-      {
-        user: new UserResource(result.user),
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        expiresIn: result.expiresIn,
-      },
-      'Registration successful',
-    );
+  async register(
+    @Body() registerDto: RegisterRequestDTO,
+  ): Promise<AuthResponseDTO | RegisterResponseDTO> {
+    return await this.accountManager.register(registerDto);
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginRequest) {
-    const result = await this.authManager.login(loginDto);
-    return ResponseDto.success(
-      {
-        user: new UserResource(result.user),
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        expiresIn: result.expiresIn,
-      },
-      'Login successful',
-    );
+  async login(@Body() loginDto: LoginRequestDTO): Promise<AuthResponseDTO> {
+    return await this.sessionManager.authenticateAccount(loginDto);
   }
 
   @Post('refresh')
-  async refreshTokens(@Body() refreshDto: RefreshTokenRequest) {
-    const result = await this.authManager.refreshTokens(refreshDto);
-    return ResponseDto.success({
-      user: new UserResource(result.user),
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-      expiresIn: result.expiresIn,
-    });
+  async refresh(
+    @Body() refreshDto: RefreshTokenRequestDTO,
+  ): Promise<AuthResponseDTO> {
+    return await this.sessionManager.refreshToken(refreshDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@CurrentUser() user: User) {
-    await this.authManager.logout(user.id);
-    return ResponseDto.success(null, 'Logout successful');
+  async logout(@Body() logoutDto: LogoutRequestDTO): Promise<void> {
+    return await this.sessionManager.logout(logoutDto.refreshToken);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async me(@CurrentUser() user: User) {
-    const currentUser = await this.authManager.getCurrentUser(user.id);
-    return ResponseDto.success(new UserResource(currentUser));
+  async me(
+    @CurrentUser() user: { userId: number },
+  ): Promise<UserProfileResponseDTO> {
+    return await this.accountManager.getCurrentUser(user.userId);
   }
 }

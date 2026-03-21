@@ -18,32 +18,14 @@
       "@core/*": [
         "core/*"
       ],
-      "@shared/*": [
-        "shared/*"
+      "@subsystems/*": [
+        "subsystems/*"
       ],
-      "@engines/*": [
-        "engines/*"
+      "@utilities/*": [
+        "utilities/*"
       ],
-      "@domain/*": [
-        "domain/*"
-      ],
-      "@managers/*": [
-        "managers/*"
-      ],
-      "@infrastructure/*": [
-        "infrastructure/*"
-      ],
-      "@presentation/*": [
-        "presentation/*"
-      ],
-      "@accessors/*": [
-        "accessors/*"
-      ],
-      "@supabase/*": [
-        "supabase/*"
-      ],
-      "@entities/*": [
-        "database/entities/*"
+      "@entry-points/*": [
+        "entry-points/*"
       ]
     },
     "incremental": true,
