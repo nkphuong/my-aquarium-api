@@ -1,14 +1,13 @@
 import { Entity, Property, OneToMany } from '@mikro-orm/decorators/legacy';
 import { Collection } from '@mikro-orm/core';
 import { BaseEntity } from '@core/entity/base.entity';
-import type { MustVerifyEmail } from '../contracts/must-verify-email.interface';
 import { UserToken } from './user-token.entity';
 
 /**
  * User domain entity
  */
 @Entity({ tableName: 'users' })
-export class User extends BaseEntity implements MustVerifyEmail {
+export class User extends BaseEntity {
   @Property({ unique: true })
   email!: string;
 
@@ -24,11 +23,4 @@ export class User extends BaseEntity implements MustVerifyEmail {
   @OneToMany(() => UserToken, (token) => token.tokenable)
   tokens = new Collection<UserToken>(this);
 
-  hasVerifiedEmail(): boolean {
-    return this.verifiedAt != null;
-  }
-
-  markEmailAsVerified(): void {
-    this.verifiedAt = new Date();
-  }
 }

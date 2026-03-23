@@ -10,7 +10,4 @@ export class Migration20260204100006_CreateWaterParameters extends Migration {
     );
   }
 
-  override async down(): Promise<void> {
-    this.addSql(`drop table if exists "water_parameters" cascade;`);
-  }
 }

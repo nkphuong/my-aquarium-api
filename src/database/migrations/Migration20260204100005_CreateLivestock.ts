@@ -9,8 +9,4 @@ export class Migration20260204100005_CreateLivestock extends Migration {
       `alter table "livestock" add constraint "livestock_tank_id_fkey" foreign key ("tank_id") references "tanks" ("id") on update cascade on delete cascade;`,
     );
   }
-
-  override async down(): Promise<void> {
-    this.addSql(`drop table if exists "livestock" cascade;`);
-  }
 }

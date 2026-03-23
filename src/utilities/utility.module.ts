@@ -1,25 +1,21 @@
 import { Module } from '@nestjs/common';
 import { SecurityUtility } from './security/security.utility';
+import { AuthConfigUtility } from './auth-config/auth-config.utility';
 import { LoggingUtility } from './logging/logging.utility';
 import { EventUtility } from './event/event.utility';
 import { QueueUtility } from './queue/queue.utility';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigService, ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('jwt.accessToken.secret'),
-      }),
-    }),
-  ],
+  imports: [JwtModule.register({})],
   providers: [
     {
       provide: 'ISecurityUtility',
       useClass: SecurityUtility,
+    },
+    {
+      provide: 'IAuthConfigUtility',
+      useClass: AuthConfigUtility,
     },
     {
       provide: 'ILoggingUtility',
@@ -36,6 +32,7 @@ import { ConfigService, ConfigModule } from '@nestjs/config';
   ],
   exports: [
     'ISecurityUtility',
+    'IAuthConfigUtility',
     'ILoggingUtility',
     'IEventUtility',
     'IQueueUtility',

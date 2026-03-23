@@ -5,6 +5,7 @@ import {
   ManyToOne,
 } from '@mikro-orm/decorators/legacy';
 import { User } from './user.entity';
+import { Admin } from './admin.entity';
 
 @Entity({ tableName: 'user_tokens' })
 export class UserToken {
@@ -20,8 +21,8 @@ export class UserToken {
   @Property()
   tokenableType!: string;
 
-  @ManyToOne(() => User, { fieldName: 'tokenable_id' })
-  tokenable!: User;
+  @ManyToOne(() => [User, Admin], { fieldName: 'tokenable_id' })
+  tokenable!: User | Admin;
 
   @Property({ nullable: true })
   userAgent?: string;

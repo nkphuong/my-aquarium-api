@@ -7,9 +7,6 @@ export class Migration20260313043859_AddUserTokens extends Migration {
     this.addSql('alter table "users" drop column "refresh_token_hash";');
   }
 
-  override async down(): Promise<void> {
-    this.addSql('alter table "users" add column "refresh_token_hash" varchar(255) null;');
-    this.addSql('drop table if exists "user_tokens" cascade;');
-  }
+
 
 }

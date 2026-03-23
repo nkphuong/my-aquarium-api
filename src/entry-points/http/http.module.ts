@@ -8,6 +8,7 @@ import { createJwtStrategy } from './strategies/dynamic-jwt.strategy';
 import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 import { TransformInterceptor } from './transform.interceptor';
 import { HttpExceptionFilter } from './http-exception.filter';
+import { AdminAuthController } from './controllers/admin-auth.controller';
 
 const UserJwtStrategy = createJwtStrategy('user');
 const AdminJwtStrategy = createJwtStrategy('admin');
@@ -15,6 +16,7 @@ const AdminJwtStrategy = createJwtStrategy('admin');
 @Module({
   controllers: [
     AuthController,
+    AdminAuthController,
     // FishSpeciesController,
     // LivestockController,
   ],
@@ -26,4 +28,4 @@ const AdminJwtStrategy = createJwtStrategy('admin');
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })
-export class HTTPModule {}
+export class HTTPModule { }

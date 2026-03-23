@@ -10,7 +10,5 @@ export class Migration20260204100001_CreateUsers extends Migration {
     );
   }
 
-  override async down(): Promise<void> {
-    this.addSql(`drop table if exists "users" cascade;`);
-  }
+
 }

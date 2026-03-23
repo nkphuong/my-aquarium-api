@@ -5,8 +5,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import mikroOrmConfig from './mikro-orm.config';
 import { HTTPModule } from '@entry-points/http/http.module';
-// import { EventEntryPointModule } from '@entry-points/events/event.module';
-// import { QUEUE_NAMES } from '@subsystems/notification/constants/queue.constants';
+import { EventEntryPointModule } from '@entry-points/events/event.module';
+import { QUEUE_NAMES } from '@subsystems/notification/constants/queue.constants';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/auth.config';
@@ -40,9 +40,9 @@ import mailConfig from './config/mail.config';
       }),
       inject: [ConfigService],
     }),
-    // BullModule.registerQueue({ name: QUEUE_NAMES.NOTIFICATION_EMAIL }),
+    BullModule.registerQueue({ name: QUEUE_NAMES.NOTIFICATION_EMAIL }),
     HTTPModule,
-    // EventEntryPointModule,
+    EventEntryPointModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

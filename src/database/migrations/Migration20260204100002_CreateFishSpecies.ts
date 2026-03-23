@@ -10,7 +10,4 @@ export class Migration20260204100002_CreateFishSpecies extends Migration {
     );
   }
 
-  override async down(): Promise<void> {
-    this.addSql(`drop table if exists "fish_species" cascade;`);
-  }
 }

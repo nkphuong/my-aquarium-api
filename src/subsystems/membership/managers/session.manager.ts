@@ -1,8 +1,9 @@
 import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import type { ISessionManager } from '../contracts/session.manager.interface';
-import type { IMemberAccess } from '../contracts/member.access.interface';
+import type { IAuthAccess } from '../contracts/auth.access.interface';
 import type { IUserTokenAccess } from '../contracts/user-token.access.interface';
 import type { ISecurityUtility } from '@utilities/security/security.utility.interface';
+import type { IAuthConfigUtility } from '@utilities/auth-config/auth-config.utility.interface';
 import { LoginRequestDTO } from '../dtos/login.request.dto';
 import { AuthResponseDTO } from '../dtos/auth.response.dto';
 import { RefreshTokenRequestDTO } from '../dtos/refresh-token.request.dto';
@@ -10,39 +11,51 @@ import { RefreshTokenRequestDTO } from '../dtos/refresh-token.request.dto';
 @Injectable()
 export class SessionManager implements ISessionManager {
   constructor(
-    @Inject('IMemberAccess') private memberAccess: IMemberAccess,
+    @Inject('AUTH_ACCESSORS') private authAccessors: Map<string, IAuthAccess>,
     @Inject('IUserTokenAccess') private userTokenAccess: IUserTokenAccess,
     @Inject('ISecurityUtility') private securityUtil: ISecurityUtility,
-  ) {}
+    @Inject('IAuthConfigUtility') private authConfigUtil: IAuthConfigUtility,
+  ) { }
 
   public async authenticateAccount(
     data: LoginRequestDTO,
+    type: string = 'user',
   ): Promise<AuthResponseDTO> {
-    const credentials = await this.memberAccess.getMemberByCredentials(
-      data.email,
-    );
+    const accessor = this.authAccessors.get(type);
 
-    if (!credentials) {
+    if (!accessor) {
+      throw new UnauthorizedException('Authentication failed.');
+    }
+
+    const result = await accessor.getByCredentials(data.email);
+
+    if (!result) {
       throw new UnauthorizedException('Authentication failed.');
     }
 
     const isValid = await this.securityUtil.verifyPassword(
       data.password,
-      credentials.hashedPassword,
+      result.credentials.hashedPassword,
     );
 
     if (!isValid) {
       throw new UnauthorizedException('Authentication failed.');
     }
 
-    const accessToken = this.securityUtil.generateToken(credentials.id);
+    const secret = this.authConfigUtil.getSecret(type);
+    const expiresIn = this.authConfigUtil.getAccessTokenExpiration(type);
+    const accessToken = this.securityUtil.signJwt(
+      { sub: result.credentials.id },
+      secret,
+      expiresIn,
+    );
     const refreshToken = this.securityUtil.generateRefreshToken();
     const refreshTokenHash = this.securityUtil.hashToken(refreshToken);
-    const expiresAt = this.securityUtil.getRefreshTokenExpirationDate();
+    const expiresAt = this.authConfigUtil.getRefreshTokenExpirationDate(type);
 
     await this.userTokenAccess.addToken(
-      credentials.id,
-      'user',
+      result.entity,
+      result.tokenableType,
       refreshTokenHash,
       expiresAt,
     );
@@ -52,9 +65,9 @@ export class SessionManager implements ISessionManager {
     response.refreshToken = refreshToken;
     response.expireAt = expiresAt;
     response.member = {
-      id: credentials.id,
-      email: credentials.email,
-      fullname: credentials.fullname,
+      id: result.credentials.id,
+      email: result.credentials.email,
+      fullname: result.credentials.fullname,
     };
     return response;
   }
@@ -72,15 +85,33 @@ export class SessionManager implements ISessionManager {
 
     await this.userTokenAccess.revokeToken(storedToken.id);
 
+    const tokenType = storedToken.tokenableType;
     const member = storedToken.owner;
-    const accessToken = this.securityUtil.generateToken(member.id);
+
+    const secret = this.authConfigUtil.getSecret(tokenType);
+    const expiresIn = this.authConfigUtil.getAccessTokenExpiration(tokenType);
+    const accessToken = this.securityUtil.signJwt(
+      { sub: member.id },
+      secret,
+      expiresIn,
+    );
     const newRefreshToken = this.securityUtil.generateRefreshToken();
     const newHash = this.securityUtil.hashToken(newRefreshToken);
-    const expiresAt = this.securityUtil.getRefreshTokenExpirationDate();
+    const expiresAt = this.authConfigUtil.getRefreshTokenExpirationDate(tokenType);
+
+    const accessor = this.authAccessors.get(tokenType);
+    if (!accessor) {
+      throw new UnauthorizedException('Invalid token type.');
+    }
+
+    const entityResult = await accessor.getByCredentials(member.email);
+    if (!entityResult) {
+      throw new UnauthorizedException('Account not found.');
+    }
 
     await this.userTokenAccess.addToken(
-      member.id,
-      storedToken.tokenableType,
+      entityResult.entity,
+      tokenType,
       newHash,
       expiresAt,
     );
@@ -95,13 +126,19 @@ export class SessionManager implements ISessionManager {
 
   public async validateToken(
     payload: Record<string, unknown>,
-    _strategyName?: string,
+    strategyName: string = 'user',
   ): Promise<Record<string, unknown>> {
     const sub = payload?.sub;
     if (!sub) {
       throw new UnauthorizedException('Invalid token payload.');
     }
-    const member = await this.memberAccess.getMemberById(sub as number);
+
+    const accessor = this.authAccessors.get(strategyName);
+    if (!accessor) {
+      throw new UnauthorizedException('Invalid token type.');
+    }
+
+    const member = await accessor.getById(sub as number);
     if (!member) {
       throw new UnauthorizedException('User not found.');
     }

@@ -1,9 +1,11 @@
-import { ITransactional } from '@core/contracts/accessor.interface';
-import { StoredTokenDTO, StoredTokenWithOwnerDTO } from '../dtos/token.dto';
+import type { ITransactional } from '@core/contracts/accessor.interface';
+import type { StoredTokenDTO, StoredTokenWithOwnerDTO } from '../dtos/token.dto';
+import type { User } from '../entities/user.entity';
+import type { Admin } from '../entities/admin.entity';
 
 export interface IUserTokenAccess extends ITransactional {
   addToken(
-    tokenableId: number,
+    tokenable: User | Admin,
     tokenableType: string,
     tokenHash: string,
     expiresAt: Date,

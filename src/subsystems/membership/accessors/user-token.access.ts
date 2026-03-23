@@ -1,8 +1,8 @@
-import { rel } from '@mikro-orm/core';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import type { IUserTokenAccess } from '../contracts/user-token.access.interface';
 import { UserToken } from '../entities/user-token.entity';
-import { User } from '../entities/user.entity';
+import type { User } from '../entities/user.entity';
+import type { Admin } from '../entities/admin.entity';
 import { BaseDbAccessor } from '@core/accessors/base-db.accessor';
 import { StoredTokenDTO, StoredTokenWithOwnerDTO } from '../dtos/token.dto';
 
@@ -12,7 +12,7 @@ export class UserTokenAccess
   implements IUserTokenAccess
 {
   public async addToken(
-    tokenableId: number,
+    tokenable: User | Admin,
     tokenableType: string,
     tokenHash: string,
     expiresAt: Date,
@@ -20,7 +20,7 @@ export class UserTokenAccess
   ): Promise<void> {
     try {
       const token = this.em.create(UserToken, {
-        tokenable: rel(User, tokenableId),
+        tokenable,
         tokenableType,
         tokenHash,
         expiresAt,

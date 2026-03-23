@@ -7,7 +7,4 @@ export class Migration20260204100007_CreateMedia extends Migration {
     );
   }
 
-  override async down(): Promise<void> {
-    this.addSql(`drop table if exists "media" cascade;`);
-  }
 }

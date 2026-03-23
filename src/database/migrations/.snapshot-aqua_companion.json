@@ -5,20 +5,20 @@
   ],
   "tables": [
     {
-      "name": "fishes",
+      "name": "admins",
       "schema": "public",
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
-          "unsigned": false,
+          "type": "int8",
+          "unsigned": true,
           "autoincrement": true,
           "primary": true,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 64,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -26,7 +26,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -42,7 +42,7 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -56,8 +56,24 @@
           "enumItems": [],
           "mappedType": "datetime"
         },
-        "name": {
-          "name": "name",
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": true,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "password": {
+          "name": "password",
           "type": "varchar(255)",
           "unsigned": false,
           "autoincrement": false,
@@ -72,54 +88,65 @@
           "enumItems": [],
           "mappedType": "string"
         },
-        "species": {
-          "name": "species",
+        "fullname": {
+          "name": "fullname",
           "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "enumItems": [],
-          "mappedType": "string"
-        },
-        "tank_id": {
-          "name": "tank_id",
-          "type": "bigint",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
           "unique": false,
-          "length": null,
+          "length": 255,
           "precision": null,
           "scale": null,
           "default": null,
           "comment": null,
           "enumItems": [],
-          "mappedType": "bigint"
+          "mappedType": "string"
+        },
+        "verified_at": {
+          "name": "verified_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
         }
       },
       "indexes": [
         {
-          "keyName": "fishes_pkey",
+          "columnNames": [
+            "email"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "admins_email_unique",
+          "unique": true,
+          "primary": false
+        },
+        {
           "columnNames": [
             "id"
           ],
           "composite": false,
-          "constraint": true,
-          "primary": true,
-          "unique": true
+          "constraint": false,
+          "keyName": "admins_pkey",
+          "unique": true,
+          "primary": true
         }
       ],
       "checks": [],
       "foreignKeys": {},
-      "nativeEnums": {}
+      "nativeEnums": {},
+      "comment": null
     },
     {
       "name": "fish_species",
@@ -127,15 +154,15 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
-          "unsigned": false,
+          "type": "int8",
+          "unsigned": true,
           "autoincrement": true,
           "primary": true,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 64,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -143,7 +170,7 @@
         },
         "create_at": {
           "name": "create_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -159,7 +186,7 @@
         },
         "update_at": {
           "name": "update_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -180,7 +207,7 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "unique": false,
+          "unique": true,
           "length": 255,
           "precision": null,
           "scale": null,
@@ -255,14 +282,14 @@
         },
         "temp_min": {
           "name": "temp_min",
-          "type": "real",
+          "type": "float4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
+          "precision": 24,
           "scale": null,
           "default": null,
           "comment": null,
@@ -271,14 +298,14 @@
         },
         "temp_max": {
           "name": "temp_max",
-          "type": "real",
+          "type": "float4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
+          "precision": 24,
           "scale": null,
           "default": null,
           "comment": null,
@@ -287,14 +314,14 @@
         },
         "ph_min": {
           "name": "ph_min",
-          "type": "real",
+          "type": "float4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
+          "precision": 24,
           "scale": null,
           "default": null,
           "comment": null,
@@ -303,14 +330,14 @@
         },
         "ph_max": {
           "name": "ph_max",
-          "type": "real",
+          "type": "float4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
+          "precision": 24,
           "scale": null,
           "default": null,
           "comment": null,
@@ -319,15 +346,15 @@
         },
         "gh_min": {
           "name": "gh_min",
-          "type": "int",
+          "type": "int4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 32,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -335,15 +362,15 @@
         },
         "gh_max": {
           "name": "gh_max",
-          "type": "int",
+          "type": "int4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 32,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -351,15 +378,15 @@
         },
         "min_tank_size": {
           "name": "min_tank_size",
-          "type": "int",
+          "type": "int4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 32,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -367,14 +394,14 @@
         },
         "size_max": {
           "name": "size_max",
-          "type": "real",
+          "type": "float4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
+          "precision": 24,
           "scale": null,
           "default": null,
           "comment": null,
@@ -383,15 +410,15 @@
         },
         "bioload_level": {
           "name": "bioload_level",
-          "type": "int",
+          "type": "int4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 32,
+          "scale": 0,
           "default": "5",
           "comment": null,
           "enumItems": [],
@@ -463,7 +490,7 @@
         },
         "is_schooling": {
           "name": "is_schooling",
-          "type": "boolean",
+          "type": "bool",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -479,15 +506,15 @@
         },
         "min_school_size": {
           "name": "min_school_size",
-          "type": "int",
+          "type": "int4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 32,
+          "scale": 0,
           "default": "1",
           "comment": null,
           "enumItems": [],
@@ -495,7 +522,7 @@
         },
         "plant_safe": {
           "name": "plant_safe",
-          "type": "boolean",
+          "type": "bool",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -511,7 +538,7 @@
         },
         "substrate_digger": {
           "name": "substrate_digger",
-          "type": "boolean",
+          "type": "bool",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -527,7 +554,7 @@
         },
         "jumper": {
           "name": "jumper",
-          "type": "boolean",
+          "type": "bool",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -564,41 +591,42 @@
             "name_en"
           ],
           "composite": false,
-          "keyName": "fish_species_name_en_unique",
           "constraint": true,
-          "primary": false,
-          "unique": true
+          "keyName": "fish_species_name_en_unique",
+          "unique": true,
+          "primary": false
         },
         {
-          "keyName": "fish_species_pkey",
           "columnNames": [
             "id"
           ],
           "composite": false,
-          "constraint": true,
-          "primary": true,
-          "unique": true
+          "constraint": false,
+          "keyName": "fish_species_pkey",
+          "unique": true,
+          "primary": true
         }
       ],
       "checks": [],
       "foreignKeys": {},
-      "nativeEnums": {}
+      "nativeEnums": {},
+      "comment": null
     },
     {
-      "name": "livestock",
+      "name": "fishes",
       "schema": "public",
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
-          "unsigned": false,
+          "type": "int8",
+          "unsigned": true,
           "autoincrement": true,
           "primary": true,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 64,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -606,7 +634,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -622,7 +650,139 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "species": {
+          "name": "species",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "tank_id": {
+          "name": "tank_id",
+          "type": "int8",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": 64,
+          "scale": 0,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "bigint"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "fishes_pkey",
+          "unique": true,
+          "primary": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "fishes_tank_id_fkey": {
+          "columnNames": [
+            "tank_id"
+          ],
+          "constraintName": "fishes_tank_id_fkey",
+          "localTableName": "public.fishes",
+          "referencedTableName": "public.tanks",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "updateRule": "cascade",
+          "deleteRule": "set null"
+        }
+      },
+      "nativeEnums": {},
+      "comment": null
+    },
+    {
+      "name": "livestock",
+      "schema": "public",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int8",
+          "unsigned": true,
+          "autoincrement": true,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 64,
+          "scale": 0,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "bigint"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -638,15 +798,15 @@
         },
         "tank_id": {
           "name": "tank_id",
-          "type": "bigint",
+          "type": "int8",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 64,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -686,15 +846,15 @@
         },
         "fishbase_id": {
           "name": "fishbase_id",
-          "type": "int",
+          "type": "int4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 32,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -718,15 +878,15 @@
         },
         "quantity": {
           "name": "quantity",
-          "type": "int",
+          "type": "int4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 32,
+          "scale": 0,
           "default": "1",
           "comment": null,
           "enumItems": [],
@@ -783,19 +943,34 @@
       },
       "indexes": [
         {
-          "keyName": "livestock_pkey",
           "columnNames": [
             "id"
           ],
           "composite": false,
-          "constraint": true,
-          "primary": true,
-          "unique": true
+          "constraint": false,
+          "keyName": "livestock_pkey",
+          "unique": true,
+          "primary": true
         }
       ],
       "checks": [],
-      "foreignKeys": {},
-      "nativeEnums": {}
+      "foreignKeys": {
+        "livestock_tank_id_fkey": {
+          "columnNames": [
+            "tank_id"
+          ],
+          "constraintName": "livestock_tank_id_fkey",
+          "localTableName": "public.livestock",
+          "referencedTableName": "public.tanks",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "updateRule": "cascade",
+          "deleteRule": "cascade"
+        }
+      },
+      "nativeEnums": {},
+      "comment": null
     },
     {
       "name": "media",
@@ -803,15 +978,15 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
-          "unsigned": false,
+          "type": "int8",
+          "unsigned": true,
           "autoincrement": true,
           "primary": true,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 64,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -819,7 +994,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -835,7 +1010,7 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -900,19 +1075,20 @@
       },
       "indexes": [
         {
-          "keyName": "media_pkey",
           "columnNames": [
             "id"
           ],
           "composite": false,
-          "constraint": true,
-          "primary": true,
-          "unique": true
+          "constraint": false,
+          "keyName": "media_pkey",
+          "unique": true,
+          "primary": true
         }
       ],
       "checks": [],
       "foreignKeys": {},
-      "nativeEnums": {}
+      "nativeEnums": {},
+      "comment": null
     },
     {
       "name": "tanks",
@@ -920,15 +1096,15 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
-          "unsigned": false,
+          "type": "int8",
+          "unsigned": true,
           "autoincrement": true,
           "primary": true,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 64,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -936,7 +1112,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -952,7 +1128,7 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -984,7 +1160,7 @@
         },
         "volume_liters": {
           "name": "volume_liters",
-          "type": "decimal(10,2)",
+          "type": "numeric(10,2)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1000,15 +1176,15 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "bigint",
+          "type": "int8",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 64,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -1016,15 +1192,15 @@
         },
         "width": {
           "name": "width",
-          "type": "int",
+          "type": "int4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 32,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -1032,15 +1208,15 @@
         },
         "length": {
           "name": "length",
-          "type": "int",
+          "type": "int4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 32,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -1048,15 +1224,15 @@
         },
         "height": {
           "name": "height",
-          "type": "int",
+          "type": "int4",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 32,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -1176,7 +1352,7 @@
         },
         "is_archived": {
           "name": "is_archived",
-          "type": "boolean",
+          "type": "bool",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1193,35 +1369,50 @@
       },
       "indexes": [
         {
-          "keyName": "tanks_pkey",
           "columnNames": [
             "id"
           ],
           "composite": false,
-          "constraint": true,
-          "primary": true,
-          "unique": true
+          "constraint": false,
+          "keyName": "tanks_pkey",
+          "unique": true,
+          "primary": true
         }
       ],
       "checks": [],
-      "foreignKeys": {},
-      "nativeEnums": {}
+      "foreignKeys": {
+        "tanks_user_id_fkey": {
+          "columnNames": [
+            "user_id"
+          ],
+          "constraintName": "tanks_user_id_fkey",
+          "localTableName": "public.tanks",
+          "referencedTableName": "public.users",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "updateRule": "cascade",
+          "deleteRule": "cascade"
+        }
+      },
+      "nativeEnums": {},
+      "comment": null
     },
     {
-      "name": "users",
+      "name": "user_tokens",
       "schema": "public",
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
-          "unsigned": false,
+          "type": "int8",
+          "unsigned": true,
           "autoincrement": true,
           "primary": true,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 64,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -1229,7 +1420,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1245,7 +1436,157 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "tokenable_id": {
+          "name": "tokenable_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "tokenable_type": {
+          "name": "tokenable_type",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "token_hash": {
+          "name": "token_hash",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "user_tokens_pkey",
+          "unique": true,
+          "primary": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {},
+      "nativeEnums": {},
+      "comment": null
+    },
+    {
+      "name": "users",
+      "schema": "public",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int8",
+          "unsigned": true,
+          "autoincrement": true,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 64,
+          "scale": 0,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "bigint"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1266,7 +1607,7 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "unique": false,
+          "unique": true,
           "length": 255,
           "precision": null,
           "scale": null,
@@ -1309,7 +1650,7 @@
         },
         "verified_at": {
           "name": "verified_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1330,202 +1671,26 @@
             "email"
           ],
           "composite": false,
-          "keyName": "users_email_unique",
           "constraint": true,
-          "primary": false,
-          "unique": true
+          "keyName": "users_email_unique",
+          "unique": true,
+          "primary": false
         },
         {
-          "keyName": "users_pkey",
           "columnNames": [
             "id"
           ],
           "composite": false,
-          "constraint": true,
-          "primary": true,
-          "unique": true
+          "constraint": false,
+          "keyName": "users_pkey",
+          "unique": true,
+          "primary": true
         }
       ],
       "checks": [],
       "foreignKeys": {},
-      "nativeEnums": {}
-    },
-    {
-      "name": "user_tokens",
-      "schema": "public",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "unsigned": false,
-          "autoincrement": true,
-          "primary": true,
-          "nullable": false,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "enumItems": [],
-          "mappedType": "integer"
-        },
-        "token_hash": {
-          "name": "token_hash",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "enumItems": [],
-          "mappedType": "string"
-        },
-        "type": {
-          "name": "type",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "enumItems": [],
-          "mappedType": "string"
-        },
-        "tokenable_type": {
-          "name": "tokenable_type",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "enumItems": [],
-          "mappedType": "string"
-        },
-        "tokenable_id": {
-          "name": "tokenable_id",
-          "type": "bigint",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "enumItems": [],
-          "mappedType": "bigint"
-        },
-        "user_agent": {
-          "name": "user_agent",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "unique": false,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "enumItems": [],
-          "mappedType": "string"
-        },
-        "ip_address": {
-          "name": "ip_address",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "unique": false,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "enumItems": [],
-          "mappedType": "string"
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "timestamptz",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": 6,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "enumItems": [],
-          "mappedType": "datetime"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamptz",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": 6,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "enumItems": [],
-          "mappedType": "datetime"
-        }
-      },
-      "indexes": [
-        {
-          "keyName": "user_tokens_pkey",
-          "columnNames": [
-            "id"
-          ],
-          "composite": false,
-          "constraint": true,
-          "primary": true,
-          "unique": true
-        }
-      ],
-      "checks": [],
-      "foreignKeys": {
-        "user_tokens_tokenable_id_foreign": {
-          "constraintName": "user_tokens_tokenable_id_foreign",
-          "columnNames": [
-            "tokenable_id"
-          ],
-          "localTableName": "public.user_tokens",
-          "referencedColumnNames": [
-            "id"
-          ],
-          "referencedTableName": "public.users"
-        }
-      },
-      "nativeEnums": {}
+      "nativeEnums": {},
+      "comment": null
     },
     {
       "name": "water_parameters",
@@ -1533,15 +1698,15 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
-          "unsigned": false,
+          "type": "int8",
+          "unsigned": true,
           "autoincrement": true,
           "primary": true,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 64,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -1549,7 +1714,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1565,7 +1730,7 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamptz",
+          "type": "timestamptz(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1581,15 +1746,15 @@
         },
         "tank_id": {
           "name": "tank_id",
-          "type": "bigint",
+          "type": "int8",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "unique": false,
           "length": null,
-          "precision": null,
-          "scale": null,
+          "precision": 64,
+          "scale": 0,
           "default": null,
           "comment": null,
           "enumItems": [],
@@ -1613,7 +1778,7 @@
         },
         "temperature": {
           "name": "temperature",
-          "type": "decimal(4,1)",
+          "type": "numeric(4,1)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1629,7 +1794,7 @@
         },
         "ph": {
           "name": "ph",
-          "type": "decimal(3,1)",
+          "type": "numeric(3,1)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1645,7 +1810,7 @@
         },
         "ammonia": {
           "name": "ammonia",
-          "type": "decimal(5,3)",
+          "type": "numeric(5,3)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1661,7 +1826,7 @@
         },
         "nitrite": {
           "name": "nitrite",
-          "type": "decimal(5,3)",
+          "type": "numeric(5,3)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1677,7 +1842,7 @@
         },
         "nitrate": {
           "name": "nitrate",
-          "type": "decimal(6,2)",
+          "type": "numeric(6,2)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1693,7 +1858,7 @@
         },
         "gh": {
           "name": "gh",
-          "type": "decimal(5,1)",
+          "type": "numeric(5,1)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1709,7 +1874,7 @@
         },
         "kh": {
           "name": "kh",
-          "type": "decimal(5,1)",
+          "type": "numeric(5,1)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -1742,19 +1907,34 @@
       },
       "indexes": [
         {
-          "keyName": "water_parameters_pkey",
           "columnNames": [
             "id"
           ],
           "composite": false,
-          "constraint": true,
-          "primary": true,
-          "unique": true
+          "constraint": false,
+          "keyName": "water_parameters_pkey",
+          "unique": true,
+          "primary": true
         }
       ],
       "checks": [],
-      "foreignKeys": {},
-      "nativeEnums": {}
+      "foreignKeys": {
+        "water_parameters_tank_id_fkey": {
+          "columnNames": [
+            "tank_id"
+          ],
+          "constraintName": "water_parameters_tank_id_fkey",
+          "localTableName": "public.water_parameters",
+          "referencedTableName": "public.tanks",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "updateRule": "cascade",
+          "deleteRule": "cascade"
+        }
+      },
+      "nativeEnums": {},
+      "comment": null
     }
   ],
   "views": [],

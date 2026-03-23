@@ -12,10 +12,11 @@ export function createJwtStrategy(name: string) {
       public readonly sessionManager: ISessionManager,
       configService: ConfigService,
     ) {
+      const provider = configService.get<string>(`auth.guards.${name}.provider`);
       super({
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
         ignoreExpiration: false,
-        secretOrKey: configService.get<string>('jwt.accessToken.secret') ?? '',
+        secretOrKey: configService.get<string>(`auth.providers.${provider}.secret`) ?? '',
       });
     }
 
