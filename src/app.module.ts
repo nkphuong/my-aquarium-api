@@ -45,4 +45,4 @@ import mailConfig from './config/mail.config';
     EventEntryPointModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

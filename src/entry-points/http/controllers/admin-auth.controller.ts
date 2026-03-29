@@ -21,9 +21,7 @@ export class AdminAuthController {
     private readonly accountManager: IAccountManager,
     @Inject('ISessionManager')
     private readonly sessionManager: ISessionManager,
-  ) { }
-
-
+  ) {}
 
   @Post('login')
   async login(@Body() loginDto: LoginRequestDTO): Promise<AuthResponseDTO> {

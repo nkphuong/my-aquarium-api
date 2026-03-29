@@ -1,5 +1,8 @@
 import type { ITransactional } from '@core/contracts/accessor.interface';
-import type { StoredTokenDTO, StoredTokenWithOwnerDTO } from '../dtos/token.dto';
+import type {
+  StoredTokenDTO,
+  StoredTokenWithOwnerDTO,
+} from '../dtos/token.dto';
 import type { User } from '../entities/user.entity';
 import type { Admin } from '../entities/admin.entity';
 
@@ -17,4 +20,9 @@ export interface IUserTokenAccess extends ITransactional {
   ): Promise<StoredTokenWithOwnerDTO | null>;
   revokeToken(tokenId: number): Promise<void>;
   revokeByHash(tokenHash: string): Promise<void>;
+  revokeByUserIdAndType(userId: number, type: string): Promise<void>;
+  findByHashAndEmail(
+    tokenHash: string,
+    email: string,
+  ): Promise<StoredTokenWithOwnerDTO | null>;
 }

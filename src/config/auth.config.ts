@@ -30,4 +30,16 @@ export default registerAs('auth', () => ({
       },
     },
   },
+  accountVerification: {
+    expireInHours: parseInt(
+      process.env.EMAIL_VERIFICATION_EXPIRES_IN_HOURS || '24',
+      10,
+    ),
+  },
+  passwordReset: {
+    expireInHours: parseInt(
+      process.env.PASSWORD_RESET_EXPIRES_IN_HOURS || '1',
+      10,
+    ),
+  },
 }));

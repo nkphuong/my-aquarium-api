@@ -4,11 +4,19 @@ import { AuthController } from './controllers/auth.controller';
 // import { LivestockController } from './controllers/livestock.controller';
 import { PassportModule } from '@nestjs/passport';
 import { MembershipModule } from '@subsystems/membership/membership.module';
+import { SubscriptionModule } from '@subsystems/subscription/subscription.module';
+import { AuthorizationModule } from '@subsystems/authorization/authorization.module';
 import { createJwtStrategy } from './strategies/dynamic-jwt.strategy';
 import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 import { TransformInterceptor } from './transform.interceptor';
 import { HttpExceptionFilter } from './http-exception.filter';
 import { AdminAuthController } from './controllers/admin-auth.controller';
+import { AdminPackageController } from './controllers/admin-package.controller';
+import { AdminRoleController } from './controllers/admin-role.controller';
+import { AdminUserManageController } from './controllers/admin-user-manage.controller';
+import { SubscriptionController } from './controllers/subscription.controller';
+import { ChangePasswordController } from './controllers/change-password.controller';
+import { VerifyAccountController } from './controllers/verify-account.controller';
 
 const UserJwtStrategy = createJwtStrategy('user');
 const AdminJwtStrategy = createJwtStrategy('admin');
@@ -17,10 +25,21 @@ const AdminJwtStrategy = createJwtStrategy('admin');
   controllers: [
     AuthController,
     AdminAuthController,
+    AdminPackageController,
+    AdminRoleController,
+    AdminUserManageController,
+    SubscriptionController,
+    ChangePasswordController,
+    VerifyAccountController,
     // FishSpeciesController,
     // LivestockController,
   ],
-  imports: [MembershipModule, PassportModule],
+  imports: [
+    MembershipModule,
+    SubscriptionModule,
+    AuthorizationModule,
+    PassportModule,
+  ],
   providers: [
     UserJwtStrategy,
     AdminJwtStrategy,
@@ -28,4 +47,4 @@ const AdminJwtStrategy = createJwtStrategy('admin');
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })
-export class HTTPModule { }
+export class HTTPModule {}

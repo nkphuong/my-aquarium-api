@@ -38,9 +38,7 @@ export class AdminAccess extends BaseDbAccessor implements IAdminAccess {
     }
   }
 
-  public async getById(
-    id: number,
-  ): Promise<UserProfileResponseDTO | null> {
+  public async getById(id: number): Promise<UserProfileResponseDTO | null> {
     try {
       const admin = await this.em.findOne(Admin, { id });
 

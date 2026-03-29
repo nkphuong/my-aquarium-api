@@ -16,11 +16,30 @@ export class EmailProcessor extends WorkerHost {
   }
 
   async process(
-    job: Job<{ userId: number; email: string; fullname?: string }>,
+    job: Job<{
+      email: string;
+      fullname?: string;
+      verificationUrl?: string;
+      resetUrl?: string;
+      expiresInHours: string;
+    }>,
   ): Promise<void> {
     switch (job.name) {
       case 'send-verification-email':
-        await this.sendVerificationEmail(job.data.email, job.data.fullname);
+        await this.sendVerificationEmail(
+          job.data.email,
+          job.data.fullname,
+          job.data.verificationUrl || '',
+          job.data.expiresInHours,
+        );
+        break;
+      case 'send-password-reset-email':
+        await this.sendPasswordResetEmail(
+          job.data.email,
+          job.data.fullname,
+          job.data.resetUrl || '',
+          job.data.expiresInHours,
+        );
         break;
       default:
         this.logger.logWarning(
@@ -32,13 +51,37 @@ export class EmailProcessor extends WorkerHost {
 
   private async sendVerificationEmail(
     email: string,
-    fullname?: string,
+    fullname: string | undefined,
+    verificationUrl: string,
+    expiresInHours: string,
   ): Promise<void> {
     await this.notificationManager.sendEmail({
       to: email,
-      subject: 'Verify your email - AI Aggregator',
+      subject: 'Verify your email - My Aquarium',
       template: 'verification',
-      data: { displayName: fullname || 'there' },
+      data: {
+        displayName: fullname || 'there',
+        verificationUrl,
+        expiresInHours,
+      },
+    });
+  }
+
+  private async sendPasswordResetEmail(
+    email: string,
+    fullname: string | undefined,
+    resetUrl: string,
+    expiresInHours: string,
+  ): Promise<void> {
+    await this.notificationManager.sendEmail({
+      to: email,
+      subject: 'Reset your password - My Aquarium',
+      template: 'password-reset',
+      data: {
+        displayName: fullname || 'there',
+        resetUrl,
+        expiresInHours,
+      },
     });
   }
 }

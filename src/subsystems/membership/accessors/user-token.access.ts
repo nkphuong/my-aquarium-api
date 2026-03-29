@@ -44,6 +44,7 @@ export class UserTokenAccess
         id: token.id,
         tokenableId: token.tokenable.id,
         tokenableType: token.tokenableType,
+        type: token.type,
         expiresAt: token.expiresAt,
       };
     } catch (error: unknown) {
@@ -70,6 +71,7 @@ export class UserTokenAccess
         id: token.id,
         tokenableId: user.id,
         tokenableType: token.tokenableType,
+        type: token.type,
         expiresAt: token.expiresAt,
         owner: {
           id: user.id,
@@ -102,6 +104,56 @@ export class UserTokenAccess
     } catch (error: unknown) {
       this.logger.logError(
         `DB error when revoking token by hash: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw new InternalServerErrorException('Infrastructure error.');
+    }
+  }
+
+  public async revokeByUserIdAndType(
+    userId: number,
+    type: string,
+  ): Promise<void> {
+    try {
+      await this.em.nativeDelete(UserToken, { tokenable: userId, type });
+    } catch (error: unknown) {
+      this.logger.logError(
+        `DB error when revoking token by user and type: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw new InternalServerErrorException('Infrastructure error.');
+    }
+  }
+
+  public async findByHashAndEmail(
+    tokenHash: string,
+    email: string,
+  ): Promise<StoredTokenWithOwnerDTO | null> {
+    try {
+      const token = await this.em.findOne(
+        UserToken,
+        { tokenHash, type: 'email_verification', tokenableType: 'users' },
+        { populate: ['tokenable'] },
+      );
+
+      if (!token) return null;
+
+      const tokenable = token.tokenable;
+      if (tokenable.email !== email) return null;
+
+      return {
+        id: token.id,
+        tokenableId: tokenable.id,
+        tokenableType: token.tokenableType,
+        type: token.type,
+        expiresAt: token.expiresAt,
+        owner: {
+          id: tokenable.id,
+          email: tokenable.email,
+          fullname: tokenable.fullname,
+        },
+      };
+    } catch (error: unknown) {
+      this.logger.logError(
+        `DB error when finding token by hash and email: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
       throw new InternalServerErrorException('Infrastructure error.');
     }

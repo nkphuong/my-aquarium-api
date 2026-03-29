@@ -4,6 +4,7 @@ export class StoredTokenDTO {
   id: number;
   tokenableId: number;
   tokenableType: string;
+  type: string;
   expiresAt: Date;
 }
 

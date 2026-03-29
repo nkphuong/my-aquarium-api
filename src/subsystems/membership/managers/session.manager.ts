@@ -15,7 +15,7 @@ export class SessionManager implements ISessionManager {
     @Inject('IUserTokenAccess') private userTokenAccess: IUserTokenAccess,
     @Inject('ISecurityUtility') private securityUtil: ISecurityUtility,
     @Inject('IAuthConfigUtility') private authConfigUtil: IAuthConfigUtility,
-  ) { }
+  ) {}
 
   public async authenticateAccount(
     data: LoginRequestDTO,
@@ -97,7 +97,8 @@ export class SessionManager implements ISessionManager {
     );
     const newRefreshToken = this.securityUtil.generateRefreshToken();
     const newHash = this.securityUtil.hashToken(newRefreshToken);
-    const expiresAt = this.authConfigUtil.getRefreshTokenExpirationDate(tokenType);
+    const expiresAt =
+      this.authConfigUtil.getRefreshTokenExpirationDate(tokenType);
 
     const accessor = this.authAccessors.get(tokenType);
     if (!accessor) {
