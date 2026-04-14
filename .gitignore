@@ -59,3 +59,7 @@ temp/
 # AI related files
 .agents*
 .claude*
+.superpowers*
+.playwright*
+docs/*
+temp/*

@@ -134,4 +134,27 @@ export class BioloadEngine {
       message: 'Tank is overstocked! Consider rehoming fish or upgrading tank',
     };
   }
+
+  /**
+   * Calculate stocking percentage for the public compatibility checker.
+   * Accepts raw values instead of Tank/Fish entities.
+   */
+  calculateStockingPercent(
+    tankLiters: number,
+    speciesList: Array<{ species: FishSpecies; quantity: number }>,
+  ): { percent: number; verdict: 'ok' | 'warning' | 'overstocked' } {
+    const maxLoad = tankLiters / 4;
+    if (maxLoad <= 0) return { percent: 0, verdict: 'ok' };
+
+    const totalLoad = speciesList.reduce((sum, { species, quantity }) => {
+      return sum + this.calculateFishBioload(species) * quantity;
+    }, 0);
+
+    const percent = Math.round((totalLoad / maxLoad) * 100);
+    let verdict: 'ok' | 'warning' | 'overstocked' = 'ok';
+    if (percent >= 100) verdict = 'overstocked';
+    else if (percent >= 80) verdict = 'warning';
+
+    return { percent, verdict };
+  }
 }

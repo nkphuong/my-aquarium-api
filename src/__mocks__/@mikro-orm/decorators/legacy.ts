@@ -5,3 +5,4 @@ const noopClass = () => (target: any) => target;
 export const Entity = noopClass;
 export const Property = noop;
 export const PrimaryKey = noop;
+export const Unique = noopClass;

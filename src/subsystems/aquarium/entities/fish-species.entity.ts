@@ -90,6 +90,12 @@ export class FishSpecies extends BaseEntity {
   @Property({ default: false })
   jumper: boolean = false;
 
+  @Property({ default: 'all' })
+  water_level: string = 'all';
+
+  @Property({ type: 'text', nullable: true })
+  care_notes_vn?: string;
+
   // --- 5. AI & SEARCH ---
   @Property({ type: 'text' })
   description!: string;

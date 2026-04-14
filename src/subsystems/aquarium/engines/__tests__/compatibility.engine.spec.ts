@@ -78,16 +78,14 @@ describe('CompatibilityEngine', () => {
       expect(result.issues[0]).toContain('pH incompatible');
     });
 
-    it('should warn about large size differences', () => {
+    it('should warn about large size ratio (>3:1)', () => {
       const smallFish = createSpecies(1, 'Neon Tetra', 22, 28, 6.0, 7.5, 3);
       const largeFish = createSpecies(2, 'Oscar', 22, 28, 6.0, 7.5, 35);
 
       const result = engine.areSpeciesCompatible(smallFish, largeFish);
 
       expect(result.compatible).toBe(true); // Still compatible water-wise
-      expect(result.warnings.some((w) => w.includes('size difference'))).toBe(
-        true,
-      );
+      expect(result.warnings.some((w) => w.includes('Size ratio'))).toBe(true);
       expect(result.score).toBeLessThan(80);
     });
 
@@ -99,6 +97,78 @@ describe('CompatibilityEngine', () => {
 
       expect(result.compatible).toBe(true);
       expect(result.warnings.length).toBeGreaterThan(0);
+    });
+
+    it('should penalize peaceful + aggressive temperament', () => {
+      const peaceful = createSpecies(1, 'Neon Tetra', 22, 28, 6.0, 7.5, 4);
+      peaceful.fill({ temperament: 'PEACEFUL' } as any);
+      const aggressive = createSpecies(2, 'Red Devil', 22, 28, 6.0, 7.5, 15);
+      aggressive.fill({ temperament: 'AGGRESSIVE' } as any);
+
+      const result = engine.areSpeciesCompatible(peaceful, aggressive);
+
+      expect(result.score).toBeLessThan(40);
+      expect(result.issues.some((i) => i.includes('Aggression mismatch'))).toBe(true);
+    });
+
+    it('should warn for peaceful + semi-aggressive temperament', () => {
+      const peaceful = createSpecies(1, 'Neon Tetra', 22, 28, 6.0, 7.5, 4);
+      peaceful.fill({ temperament: 'PEACEFUL' } as any);
+      const semi = createSpecies(2, 'Tiger Barb', 22, 28, 6.0, 7.5, 7);
+      semi.fill({ temperament: 'SEMI_AGGRESSIVE' } as any);
+
+      const result = engine.areSpeciesCompatible(peaceful, semi);
+
+      expect(result.warnings.some((w) => w.includes('bully'))).toBe(true);
+      expect(result.score).toBeLessThan(100);
+    });
+
+    it('should not penalize same temperament', () => {
+      const fish1 = createSpecies(1, 'Guppy', 22, 28, 6.5, 8.0, 5);
+      fish1.fill({ temperament: 'PEACEFUL' } as any);
+      const fish2 = createSpecies(2, 'Platy', 20, 28, 7.0, 8.0, 6);
+      fish2.fill({ temperament: 'PEACEFUL' } as any);
+
+      const result = engine.areSpeciesCompatible(fish1, fish2);
+
+      expect(result.issues.filter((i) => i.includes('Aggression'))).toHaveLength(0);
+    });
+  });
+
+  describe('checkSchoolingRequirements', () => {
+    it('should warn if schooling fish has too few', () => {
+      const tetra = createSpecies(1, 'Neon Tetra', 22, 28, 6.0, 7.5, 4);
+      tetra.fill({ is_schooling: true, min_school_size: 6, name_vn: 'Cá neon' } as any);
+
+      const warnings = engine.checkSchoolingRequirements([
+        { species: tetra, quantity: 2 },
+      ]);
+
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toContain('6');
+      expect(warnings[0]).toContain('2');
+    });
+
+    it('should not warn if schooling fish meets minimum', () => {
+      const tetra = createSpecies(1, 'Neon Tetra', 22, 28, 6.0, 7.5, 4);
+      tetra.fill({ is_schooling: true, min_school_size: 6 } as any);
+
+      const warnings = engine.checkSchoolingRequirements([
+        { species: tetra, quantity: 8 },
+      ]);
+
+      expect(warnings).toHaveLength(0);
+    });
+
+    it('should not warn for non-schooling fish', () => {
+      const betta = createSpecies(1, 'Betta', 24, 30, 6.0, 7.5, 7);
+      betta.fill({ is_schooling: false } as any);
+
+      const warnings = engine.checkSchoolingRequirements([
+        { species: betta, quantity: 1 },
+      ]);
+
+      expect(warnings).toHaveLength(0);
     });
   });
 

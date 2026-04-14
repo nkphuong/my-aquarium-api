@@ -117,6 +117,7 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
+      "^@mikro-orm/core$": "<rootDir>/__mocks__/@mikro-orm/core.ts",
       "^@mikro-orm/decorators/legacy$": "<rootDir>/__mocks__/@mikro-orm/decorators/legacy.ts",
       "^@core/(.*)$": "<rootDir>/core/$1",
       "^@subsystems/(.*)$": "<rootDir>/subsystems/$1",

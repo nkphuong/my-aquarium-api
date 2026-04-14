@@ -3,6 +3,7 @@ import {
   GoogleGenAI,
   GenerateContentConfig,
   GenerateContentResponse,
+  Chat,
 } from '@google/genai';
 import { IAiClientUtility } from './interfaces/ai-client.utility.interface';
 
@@ -42,6 +43,31 @@ export class AiClientUtility implements IAiClientUtility {
       model: model || this.defaultModel,
       contents: prompt,
       config: finalConfig,
+    });
+  }
+
+  createChatSession(
+    systemInstruction: string,
+    specificConfig?: GenerateContentConfig & { model?: string },
+  ): Chat {
+    const baseConfig: GenerateContentConfig = {
+      temperature: 0.7,
+      topK: 40,
+    };
+
+    const { model, ...configOverrides } = specificConfig || {};
+
+    const finalConfig = {
+      ...baseConfig,
+      ...configOverrides,
+    };
+
+    return this.ai.chats.create({
+      model: model || this.defaultModel,
+      config: {
+        ...finalConfig,
+        systemInstruction,
+      },
     });
   }
 }

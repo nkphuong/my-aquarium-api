@@ -75,18 +75,37 @@ export class CompatibilityEngine {
       score -= 15;
     }
 
-    // Size compatibility - very different sizes can cause aggression
-    const sizeDiff = Math.abs(
-      (species1.size_max ?? 10) - (species2.size_max ?? 10),
-    );
-    if (sizeDiff > 15) {
-      warnings.push(
-        `Large size difference (${sizeDiff}cm) - smaller fish may be bullied or eaten`,
+    // Aggression mismatch
+    const temp1 = (species1.temperament ?? 'PEACEFUL').toUpperCase();
+    const temp2 = (species2.temperament ?? 'PEACEFUL').toUpperCase();
+    if (
+      (temp1 === 'PEACEFUL' && temp2 === 'AGGRESSIVE') ||
+      (temp1 === 'AGGRESSIVE' && temp2 === 'PEACEFUL')
+    ) {
+      issues.push(
+        `Aggression mismatch: ${species1.name_en} (${temp1}) vs ${species2.name_en} (${temp2})`,
       );
-      score -= 25;
-    } else if (sizeDiff > 10) {
-      warnings.push(`Notable size difference between species`);
-      score -= 10;
+      score -= 60;
+    } else if (
+      (temp1 === 'PEACEFUL' && temp2 === 'SEMI_AGGRESSIVE') ||
+      (temp1 === 'SEMI_AGGRESSIVE' && temp2 === 'PEACEFUL')
+    ) {
+      warnings.push(
+        `${temp2 === 'SEMI_AGGRESSIVE' ? species2.name_en : species1.name_en} may bully ${temp1 === 'PEACEFUL' ? species1.name_en : species2.name_en}`,
+      );
+      score -= 20;
+    }
+
+    // Size ratio check (predation risk)
+    const size1 = species1.size_max ?? 10;
+    const size2 = species2.size_max ?? 10;
+    const minSize = Math.min(size1, size2);
+    const sizeRatio = minSize > 0 ? Math.max(size1, size2) / minSize : 1;
+    if (sizeRatio > 3) {
+      warnings.push(
+        `Size ratio ${sizeRatio.toFixed(1)}:1 — larger fish may eat smaller`,
+      );
+      score -= 30;
     }
 
     return {
@@ -165,6 +184,23 @@ export class CompatibilityEngine {
       temp: { min: tempMin, max: tempMax },
       ph: { min: phMin, max: phMax },
     };
+  }
+
+  /**
+   * Check if schooling species have sufficient numbers
+   */
+  checkSchoolingRequirements(
+    speciesList: Array<{ species: FishSpecies; quantity: number }>,
+  ): string[] {
+    const warnings: string[] = [];
+    for (const { species, quantity } of speciesList) {
+      if (species.is_schooling && quantity < (species.min_school_size ?? 6)) {
+        warnings.push(
+          `${species.name_vn || species.name_en} cần nhóm ít nhất ${species.min_school_size ?? 6} con (hiện có ${quantity})`,
+        );
+      }
+    }
+    return warnings;
   }
 
   /**

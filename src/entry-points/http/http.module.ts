@@ -6,6 +6,9 @@ import { PassportModule } from '@nestjs/passport';
 import { MembershipModule } from '@subsystems/membership/membership.module';
 import { SubscriptionModule } from '@subsystems/subscription/subscription.module';
 import { AuthorizationModule } from '@subsystems/authorization/authorization.module';
+import { AquariumModule } from '@subsystems/aquarium/aquarium.module';
+import { ChatModule } from '@subsystems/chat/chat.module';
+import { ChatController } from './controllers/chat.controller';
 import { createJwtStrategy } from './strategies/dynamic-jwt.strategy';
 import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 import { TransformInterceptor } from './transform.interceptor';
@@ -17,6 +20,7 @@ import { AdminUserManageController } from './controllers/admin-user-manage.contr
 import { SubscriptionController } from './controllers/subscription.controller';
 import { ChangePasswordController } from './controllers/change-password.controller';
 import { VerifyAccountController } from './controllers/verify-account.controller';
+import { CompatibilityController } from './controllers/compatibility.controller';
 
 const UserJwtStrategy = createJwtStrategy('user');
 const AdminJwtStrategy = createJwtStrategy('admin');
@@ -31,6 +35,8 @@ const AdminJwtStrategy = createJwtStrategy('admin');
     SubscriptionController,
     ChangePasswordController,
     VerifyAccountController,
+    ChatController,
+    CompatibilityController,
     // FishSpeciesController,
     // LivestockController,
   ],
@@ -38,6 +44,8 @@ const AdminJwtStrategy = createJwtStrategy('admin');
     MembershipModule,
     SubscriptionModule,
     AuthorizationModule,
+    AquariumModule,
+    ChatModule,
     PassportModule,
   ],
   providers: [
